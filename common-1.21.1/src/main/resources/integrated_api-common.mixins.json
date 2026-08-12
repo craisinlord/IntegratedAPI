@@ -1,0 +1,41 @@
+{
+  "required": true,
+  "package": "com.craisinlord.integrated_api.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "blocks.StructureBlockUnlimit",
+    "blocks.UpdateStructureBlockUnlimit",
+    "entities.BlockAttachedEntityMixin",
+    "entities.MerchantOfferAccessor",
+    "entities.ShulkerEntityInvoker",
+    "features.DungeonFeatureAccessor",
+    "features.NoGeodesInStructuresMixin",
+    "items.MapItemAccessor",
+    "resources.LootContextAccessor",
+    "resources.NamespaceResourceManagerAccessor",
+    "resources.ReloadableResourceManagerImplAccessor",
+    "structures.BeardifierAccessor",
+    "structures.BeardifierMixin",
+    "structures.DisableStructuresMixin",
+    "structures.JigsawJunctionAccessor",
+    "structures.JigsawPlacementUnlimit",
+    "structures.ListPoolElementAccessor",
+    "structures.LocateCommandMixin",
+    "structures.PoolElementStructurePieceAccessor",
+    "structures.SinglePoolElementAccessor",
+    "structures.StructureManagerAccessor",
+    "structures.StructurePieceAccessor",
+    "structures.StructurePoolAccessor",
+    "structures.StructureProcessorAccessor",
+    "structures.StructureTemplateManagerAccessor",
+    "structures.TemplateAccessor"
+  ],
+  "client": [
+    "blocks.StructureBlockRenderMixin",
+    "blocks.StructureBlockScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

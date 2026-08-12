@@ -1,0 +1,26 @@
+modLoader="javafml" #mandatory
+loaderVersion="[38,)" #mandatory
+license="All rights reserved"
+
+[[mods]] #mandatory
+modId="integrated_api" #mandatory
+logoFile="../assets/integrated_api/integrated_api_logo.png"
+logoBlur=false
+version="${version}" #mandatory
+displayName="Integrated API" #mandatory
+displayURL="https://www.curseforge.com/minecraft/mc-mods/integrated_api"
+authors="CraisinLord"
+credits="Special thanks to TelpathicGrunt for thier structure tutorial! And Bdubs, GoodTimesWithScar and Mythical Sausage for building inspirations!"
+description='''
+Library mod for the Integrated Structures series
+'''
+
+[[dependencies.integrated_api]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20,1.21)"
+
+[[dependencies.integrated_api]]
+    modId="forge"
+    mandatory=true
+    versionRange="[46.0.1,)"

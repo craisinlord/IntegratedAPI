@@ -1,0 +1,39 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:ice_spikes",
+    "minecraft:frozen_peaks",
+    {
+      "id": "#byg:is_icy",
+      "required": false
+    },
+    {
+      "id": "#forge:is_icy",
+      "required": false
+    },
+    {
+      "id": "regions_unexplored:icy_desert",
+      "required": false
+    },
+    {
+      "id": "regions_unexplored:icy_heights",
+      "required": false
+    },
+    {
+      "id": "regions_unexplored:spires",
+      "required": false
+    },
+    {
+      "id": "wythers:glacial_cliffs",
+      "required": false
+    },
+    {
+      "id": "wythers:ice_cap",
+      "required": false
+    },
+    {
+      "id": "wythers:snowy_bog",
+      "required": false
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+plugins {
+    id "com.gradleup.shadow" version "9.5.1"
+}
+
+architectury {
+    platformSetupLoomIde()
+    neoForge()
+}
+
+loom {
+    accessWidenerPath = project(":common-1.21.1").loom.accessWidenerPath
+
+    neoForge {
+        runs {
+            all {}
+
+            data {
+                data()
+                programArgs("--all", "--mod", "integrated_api")
+                programArgs("--existing", project(":common-1.21.1").file("src/main/resources").absolutePath)
+                programArgs("--output", project(":common-1.21.1").file("src/main/generated/resources").absolutePath)
+                all {}
+            }
+        }
+    }
+}
+
+configurations {
+    common
+    shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentForge.extendsFrom common
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version_1_21_1}"
+    mappings loom.officialMojangMappings()
+
+    neoForge "net.neoforged:neoforge:${neoforge_version_1_21_1}"
+
+    modLocalRuntime("com.telepathicgrunt:CommandStructures-Neoforge:${commandstructures_neoforge_1_21_1}")
+    modLocalRuntime("com.telepathicgrunt:StructureVoidToggle-Neoforge:${structurevoidtoggle_neoforge_1_21_1}")
+
+    common(project(path: ":common-1.21.1", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":common-1.21.1", configuration: "transformProductionNeoForge")) { transitive = false }
+}
+
+base {
+    archivesName = "${mod_id}-neoforge-1.21.1"
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand "version": project.version
+    }
+}
+
+shadowJar {
+    exclude "fabric.mod.json"
+    exclude "architectury.common.json"
+
+    configurations = [project.configurations.shadowCommon]
+    archiveClassifier.set("dev-shadow")
+}
+
+remapJar {
+    input.set shadowJar.archiveFile
+    dependsOn shadowJar
+    archiveClassifier.set(null)
+    atAccessWideners.add("${mod_id}.accesswidener")
+}
+
+jar {
+    archiveClassifier.set("dev")
+}
+
+sourcesJar {
+    def commonSources = project(":common-1.21.1").sourcesJar
+    dependsOn commonSources
+    from commonSources.archiveFile.map { zipTree(it) }
+}
+
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = rootProject.group
+            artifactId = project.base.archivesName.get()
+            version = project.version
+
+            artifact(project.tasks.named('remapJar'))
+            artifact(project.tasks.named('remapSourcesJar')) {
+                classifier = 'sources'
+            }
+
+            pom {
+                name = "${mod_name} (NeoForge 1.21.1)"
+                description = mod_description
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'LocalMaven'
+            url = findProperty('mavenRepoPath') ? uri(findProperty('mavenRepoPath')) : rootProject.layout.buildDirectory.dir('maven-repo').get().asFile.toURI()
+        }
+        maven {
+            name = 'Forgejo'
+            url = uri('https://maven.tysontheember.dev')
+            credentials {
+                username = findProperty('forgejoActor') ?: System.getenv('FORGEJO_ACTOR')
+                password = findProperty('forgejoToken') ?: System.getenv('FORGEJO_TOKEN')
+            }
+        }
+    }
+}

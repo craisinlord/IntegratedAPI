@@ -1,0 +1,116 @@
+plugins {
+    id "com.gradleup.shadow" version "9.5.1"
+}
+
+architectury {
+    platformSetupLoomIde()
+    fabric()
+}
+
+loom {
+    accessWidenerPath = project(":common-1.20.1").loom.accessWidenerPath
+}
+
+configurations {
+    common
+    shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentFabric.extendsFrom common
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version_1_20_1}"
+    mappings loom.officialMojangMappings()
+
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version_1_20_1}"
+    modApi "net.fabricmc.fabric-api:fabric-api:${fabric_api_version_1_20_1}"
+
+    modRuntimeOnly("com.telepathicgrunt:CommandStructures-Fabric:${commandstructures_fabric_1_20_1}")
+    modRuntimeOnly("com.telepathicgrunt:StructureVoidToggle-Fabric:${structurevoidtoggle_fabric_1_20_1}")
+
+    modImplementation "maven.modrinth:midnightlib:${midnightlib_1_20_1}"
+
+    modCompileOnly "maven.modrinth:modmenu:${mod_menu_1_20_1}"
+    modRuntimeOnly "maven.modrinth:modmenu:${mod_menu_1_20_1}"
+
+    common(project(path: ":common-1.20.1", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":common-1.20.1", configuration: "transformProductionFabric")) { transitive false }
+
+    implementation(annotationProcessor("com.github.llamalad7.mixinextras:mixinextras-fabric:${mixin_extras_1_20_1}"))
+}
+
+base {
+    archivesName = "${mod_id}-fabric-1.20.1"
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+shadowJar {
+    exclude "architectury.common.json"
+    configurations = [project.configurations.shadowCommon]
+    archiveClassifier.set("dev-shadow")
+}
+
+remapJar {
+    injectAccessWidener = true
+    input.set shadowJar.archiveFile
+    dependsOn shadowJar
+    archiveClassifier.set(null)
+}
+
+jar {
+    archiveClassifier.set("dev")
+}
+
+sourcesJar {
+    def commonSources = project(":common-1.20.1").sourcesJar
+    dependsOn commonSources
+    from commonSources.archiveFile.map { zipTree(it) }
+}
+
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = rootProject.group
+            artifactId = project.base.archivesName.get()
+            version = project.version
+
+            artifact(project.tasks.named('remapJar'))
+            artifact(project.tasks.named('remapSourcesJar')) {
+                classifier = 'sources'
+            }
+
+            pom {
+                name = "${mod_name} (Fabric 1.20.1)"
+                description = mod_description
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'LocalMaven'
+            url = findProperty('mavenRepoPath') ? uri(findProperty('mavenRepoPath')) : rootProject.layout.buildDirectory.dir('maven-repo').get().asFile.toURI()
+        }
+        maven {
+            name = 'Forgejo'
+            url = uri('https://maven.tysontheember.dev')
+            credentials {
+                username = findProperty('forgejoActor') ?: System.getenv('FORGEJO_ACTOR')
+                password = findProperty('forgejoToken') ?: System.getenv('FORGEJO_TOKEN')
+            }
+        }
+    }
+}

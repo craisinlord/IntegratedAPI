@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "com.craisinlord.integrated_api.mixins.forge",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "structures.StructurePoolMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

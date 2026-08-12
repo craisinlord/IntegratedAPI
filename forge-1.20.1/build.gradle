@@ -1,0 +1,153 @@
+plugins {
+    id "com.gradleup.shadow" version "9.5.1"
+}
+
+architectury {
+    platformSetupLoomIde()
+    forge()
+}
+
+loom {
+    accessWidenerPath = project(":common-1.20.1").loom.accessWidenerPath
+
+    // Work around a known architectury-loom bug (upstream issue #334): registering any
+    // decompiler for old-style Forge crashes at configuration time with "Mapping tree must
+    // have srg src mappings not intermediary" — this affects Forge specifically because
+    // it's the only loader here using SRG mappings internally, and it happens for every
+    // decompiler engine (cfr, vineflower), not just one. Fixed upstream in the Loom 1.17.x
+    // series, but that series has its own incompatibility with the latest architectury-plugin
+    // (NoClassDefFoundError: RunConfig — breaks fabric()/forge() entirely), so neither pin
+    // fully works right now. Clearing the decompiler list stops the specific per-decompiler
+    // tasks (e.g. genSourcesWithCfr — what IDE sync actually asks for) from being registered,
+    // which is what made this whole project uneditable in an IDE. This only disables "View
+    // Decompiled Sources" for vanilla Forge/MC classes — building, compiling, and running are
+    // unaffected. Residual limitation: Gradle's own `tasks` report (`./gradlew tasks` or
+    // `:forge-1.20.1:tasks`) still fails, because Loom's generic "genSources" aggregate task
+    // hard-depends on the now-removed default decompiler by name regardless of container
+    // state, and that reference can't be intercepted from build.gradle — the exception is
+    // thrown inside Loom's own task registration closure before any later configuration
+    // action can run. Don't run `tasks`/`:forge-1.20.1:tasks` on this project until upstream
+    // fixes it; every other Gradle command (build, run, IDE sync) works.
+    decompilerOptions.clear()
+
+    forge {
+        convertAccessWideners = true
+        extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
+
+        mixinConfig "integrated_api-common.mixins.json"
+        mixinConfig "integrated_api-forge.mixins.json"
+    }
+
+    runs {
+        all {
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+        }
+        data {
+            data()
+            programArgs("--all", "--mod", "integrated_api")
+            programArgs("--existing", project(":common-1.20.1").file("src/main/resources").absolutePath)
+            programArgs("--output", project(":common-1.20.1").file("src/main/generated/resources").absolutePath)
+        }
+    }
+}
+
+configurations {
+    common
+    shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentForge.extendsFrom common
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version_1_20_1}"
+    mappings loom.officialMojangMappings()
+
+    forge "net.minecraftforge:forge:${forge_version_1_20_1}"
+
+    modLocalRuntime("com.telepathicgrunt:CommandStructures-Forge:${commandstructures_forge_1_20_1}")
+    modLocalRuntime("com.telepathicgrunt:StructureVoidToggle-Forge:${structurevoidtoggle_forge_1_20_1}")
+
+    common(project(path: ":common-1.20.1", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":common-1.20.1", configuration: "transformProductionForge")) { transitive = false }
+
+    implementation(annotationProcessor("com.github.llamalad7.mixinextras:mixinextras-common:${mixin_extras_1_20_1}"))
+    implementation(include("com.github.llamalad7.mixinextras:mixinextras-forge:${mixin_extras_1_20_1}"))
+}
+
+base {
+    archivesName = "${mod_id}-forge-1.20.1"
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("META-INF/mods.toml") {
+        expand "version": project.version
+    }
+}
+
+shadowJar {
+    exclude "fabric.mod.json"
+    exclude "architectury.common.json"
+
+    configurations = [project.configurations.shadowCommon]
+    archiveClassifier.set("dev-shadow")
+}
+
+remapJar {
+    input.set shadowJar.archiveFile
+    dependsOn shadowJar
+    archiveClassifier.set(null)
+}
+
+jar {
+    archiveClassifier.set("dev")
+}
+
+sourcesJar {
+    def commonSources = project(":common-1.20.1").sourcesJar
+    dependsOn commonSources
+    from commonSources.archiveFile.map { zipTree(it) }
+}
+
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = rootProject.group
+            artifactId = project.base.archivesName.get()
+            version = project.version
+
+            artifact(project.tasks.named('remapJar'))
+            artifact(project.tasks.named('remapSourcesJar')) {
+                classifier = 'sources'
+            }
+
+            pom {
+                name = "${mod_name} (Forge 1.20.1)"
+                description = mod_description
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'LocalMaven'
+            url = findProperty('mavenRepoPath') ? uri(findProperty('mavenRepoPath')) : rootProject.layout.buildDirectory.dir('maven-repo').get().asFile.toURI()
+        }
+        maven {
+            name = 'Forgejo'
+            url = uri('https://maven.tysontheember.dev')
+            credentials {
+                username = findProperty('forgejoActor') ?: System.getenv('FORGEJO_ACTOR')
+                password = findProperty('forgejoToken') ?: System.getenv('FORGEJO_TOKEN')
+            }
+        }
+    }
+}

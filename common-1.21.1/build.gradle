@@ -1,0 +1,37 @@
+architectury {
+    minecraft = minecraft_version_1_21_1
+    common("fabric", "neoforge")
+}
+
+loom {
+    accessWidenerPath = file("src/main/resources/integrated_api.accesswidener")
+    silentMojangMappingsLicense()
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version_1_21_1}"
+    mappings loom.officialMojangMappings()
+
+    // We depend on fabric loader here to use the fabric @Environment annotations and
+    // get the mixin dependencies. Do NOT use other classes from fabric loader.
+    // Compile-only so NeoForge's runtime doesn't see Fabric loader and double-register mixins.
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version_1_21_1}"
+
+    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixin_extras_1_21_1}"))
+}
+
+base {
+    archivesName = "${mod_id}-common-1.21.1"
+}
+
+jar {
+    exclude "architectury.common.json"
+
+    manifest {
+        attributes 'Fabric-Loom-Remap': true
+    }
+}
+
+sourcesJar {
+    exclude "architectury.common.json"
+}

@@ -1,0 +1,93 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version '1.15.5'
+}
+
+base {
+    archivesName = "${mod_id}-fabric-26.2"
+}
+
+// Handle duplicates from common module
+tasks.withType(AbstractCopyTask).configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(25) }
+    withSourcesJar()
+}
+
+// Add common source sets directly
+sourceSets {
+    main {
+        java {
+            setSrcDirs([
+                'src/minimal/java',
+                project(':common-26.2').file('src/minimal/java')
+            ])
+        }
+        resources {
+            srcDir project(':common-26.2').sourceSets.main.resources.srcDirs
+        }
+    }
+}
+
+dependencies {
+    // Minecraft & Fabric — MC 26.2 is unobfuscated, no mappings needed
+    minecraft "com.mojang:minecraft:${minecraft_version_26_2}"
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version_26_2}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version_26_2}"
+
+    implementation "maven.modrinth:midnightlib:${midnightlib_26_2}"
+
+    compileOnly "maven.modrinth:modmenu:${mod_menu_26_2}"
+    runtimeOnly "maven.modrinth:modmenu:${mod_menu_26_2}"
+
+    implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.3.6"))
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    var replaceProperties = [
+        version        : project.version,
+        mod_id         : mod_id,
+        mod_name       : mod_name,
+        mod_description: mod_description,
+        mod_license    : mod_license
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching('fabric.mod.json') {
+        expand replaceProperties
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = rootProject.group
+            artifactId = project.base.archivesName.get()
+            version = project.version
+
+            artifact jar
+            artifact sourcesJar
+
+            pom {
+                name = "${mod_name} (Fabric 26.2)"
+                description = mod_description
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'LocalMaven'
+            url = findProperty('mavenRepoPath') ? uri(findProperty('mavenRepoPath')) : rootProject.layout.buildDirectory.dir('maven-repo').get().asFile.toURI()
+        }
+        maven {
+            name = 'Forgejo'
+            url = uri('https://maven.tysontheember.dev')
+            credentials {
+                username = findProperty('forgejoActor') ?: System.getenv('FORGEJO_ACTOR')
+                password = findProperty('forgejoToken') ?: System.getenv('FORGEJO_TOKEN')
+            }
+        }
+    }
+}

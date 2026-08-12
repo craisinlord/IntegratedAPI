@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "integrated_api",
+  "version": "${version}",
+
+  "name": "Integrated API",
+  "description": "Library mod for the Integrated Structures series",
+  "authors": [
+    "CraisinLord"
+  ],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/integrated_api",
+    "issues": "https://www.curseforge.com/minecraft/mc-mods/integrated_api"
+  },
+
+  "license": "All Rights Reserved",
+  "icon": "assets/integrated_api/integrated_api_logo.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.craisinlord.integrated_api.IntegratedAPIFabric"
+    ],
+    "modmenu": [
+      "com.craisinlord.integrated_api.configs.ModMenuCompat"
+    ]
+  },
+  "mixins": [
+    "integrated_api-fabric.mixins.json",
+    "integrated_api-common.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.14.21",
+    "minecraft": ">=1.20",
+    "fabric": ">=0.83.0",
+    "midnightlib": ">=1.4.0"
+  }
+}

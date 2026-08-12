@@ -1,0 +1,41 @@
+architectury {
+    minecraft = minecraft_version_1_20_1
+    common("fabric", "forge")
+}
+
+loom {
+    accessWidenerPath = file("src/main/resources/integrated_api.accesswidener")
+    silentMojangMappingsLicense()
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version_1_20_1}"
+    mappings loom.officialMojangMappings()
+
+    // We depend on fabric loader here to use the fabric @Environment annotations and
+    // get the mixin dependencies. Do NOT use other classes from fabric loader.
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version_1_20_1}"
+
+    modImplementation("curse.maven:selene-499980:4754433")
+
+    compileOnly group: 'org.ow2.asm', name: 'asm-tree', version: '9.4'
+    implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
+
+    implementation(annotationProcessor("com.github.llamalad7.mixinextras:mixinextras-fabric:${mixin_extras_1_20_1}"))
+}
+
+base {
+    archivesName = "${mod_id}-common-1.20.1"
+}
+
+jar {
+    exclude "architectury.common.json"
+
+    manifest {
+        attributes 'Fabric-Loom-Remap': true
+    }
+}
+
+sourcesJar {
+    exclude "architectury.common.json"
+}

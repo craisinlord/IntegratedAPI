@@ -1,0 +1,112 @@
+package com.craisinlord.integrated_api.world.structures;
+
+import com.craisinlord.integrated_api.IntegratedAPI;
+import com.craisinlord.integrated_api.modinit.IAStructures;
+import com.craisinlord.integrated_api.world.structures.codecs.YRangeAllowance;
+import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptation;
+import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptationType;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.level.NoiseColumn;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
+import net.minecraft.world.level.levelgen.structure.StructureType;
+import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.templatesystem.LiquidSettings;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Optional;
+
+
+public class OverLavaNetherStructure extends JigsawStructure {
+
+    public static final MapCodec<OverLavaNetherStructure> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            OverLavaNetherStructure.settingsCodec(instance),
+            StructureTemplatePool.CODEC.fieldOf("start_pool").forGetter(structure -> structure.startPool),
+            Codec.intRange(0, 30).fieldOf("size").forGetter(structure -> structure.size),
+            YRangeAllowance.CODEC.optionalFieldOf("y_allowance").forGetter(structure -> structure.yAllowance),
+            HeightProvider.CODEC.fieldOf("start_height").forGetter(structure -> structure.startHeight),
+            Heightmap.Types.CODEC.optionalFieldOf("project_start_to_heightmap").forGetter(structure -> structure.projectStartToHeightmap),
+            Codec.BOOL.fieldOf("cannot_spawn_in_liquid").orElse(false).forGetter(structure -> structure.cannotSpawnInLiquid),
+            Codec.intRange(1, 100).optionalFieldOf("terrain_height_radius_check").forGetter(structure -> structure.terrainHeightCheckRadius),
+            Codec.intRange(1, 1000).optionalFieldOf("allowed_terrain_height_range").forGetter(structure -> structure.allowedTerrainHeightRange),
+            Codec.intRange(1, 100).optionalFieldOf("valid_biome_radius_check").forGetter(structure -> structure.biomeRadius),
+            Codec.intRange(1, IntegratedAPI.NEW_STRUCTURE_SIZE).optionalFieldOf("max_distance_from_center").forGetter(structure -> structure.maxDistanceFromCenter),
+            StringRepresentable.fromEnum(BURYING_TYPE::values).optionalFieldOf("burying_type").forGetter(structure -> structure.buryingType),
+            Codec.BOOL.fieldOf("rotation_fixed").orElse(false).forGetter(structure -> structure.rotationFixed),
+            EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE).forGetter(structure -> structure.enhancedTerrainAdaptation),
+            LiquidSettings.CODEC.optionalFieldOf("liquid_settings", net.minecraft.world.level.levelgen.structure.structures.JigsawStructure.DEFAULT_LIQUID_SETTINGS).forGetter(structure -> structure.liquidSettings)
+    ).apply(instance, OverLavaNetherStructure::new));
+
+    public OverLavaNetherStructure(StructureSettings config,
+                                   Holder<StructureTemplatePool> startPool,
+                                   int size,
+                                   Optional<YRangeAllowance> yAllowance,
+                                   HeightProvider startHeight,
+                                   Optional<Heightmap.Types> projectStartToHeightmap,
+                                   boolean cannotSpawnInLiquid,
+                                   Optional<Integer> terrainHeightCheckRadius,
+                                   Optional<Integer> allowedTerrainHeightRange,
+                                   Optional<Integer> biomeRadius,
+                                   Optional<Integer> maxDistanceFromCenter,
+                                   Optional<BURYING_TYPE> buryingType,
+                                   boolean rotationFixed,
+                                   EnhancedTerrainAdaptation enhancedTerrainAdaptation,
+                                   LiquidSettings liquidSettings)
+    {
+        super(config,
+                startPool,
+                size,
+                yAllowance,
+                startHeight,
+                projectStartToHeightmap,
+                cannotSpawnInLiquid,
+                terrainHeightCheckRadius,
+                allowedTerrainHeightRange,
+                biomeRadius,
+                maxDistanceFromCenter,
+                buryingType,
+                rotationFixed,
+                enhancedTerrainAdaptation,
+                liquidSettings);
+    }
+
+    @Override
+    protected boolean extraSpawningChecks(GenerationContext context, BlockPos blockPos) {
+        boolean superCheck = super.extraSpawningChecks(context, blockPos);
+        if(!superCheck)
+            return false;
+
+        // Check to see if there some air where the structure wants to spawn.
+        // Doesn't account for rotation of structure.
+        int checkRadius = 16;
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+
+        for(int xOffset = -checkRadius; xOffset <= checkRadius; xOffset += 8) {
+            for(int zOffset = -checkRadius; zOffset <= checkRadius; zOffset += 8) {
+                NoiseColumn blockView = context.chunkGenerator().getBaseColumn(xOffset + blockPos.getX(), zOffset + blockPos.getZ(), context.heightAccessor(), context.randomState());
+                for(int yOffset = 0; yOffset <= 30; yOffset += 5) {
+                    mutable.set(blockPos).move(xOffset, yOffset, zOffset);
+                    BlockState state = blockView.getBlock(mutable.getY());
+                    if (!state.isAir() && state.getFluidState().isEmpty()) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public StructureType<?> type() {
+        return IAStructures.OVER_LAVA_NETHER_STRUCTURE.get();
+    }
+}
