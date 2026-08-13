@@ -10,6 +10,14 @@ architectury {
 loom {
     accessWidenerPath = project(":common-1.21.1").loom.accessWidenerPath
 
+    // Work around the same Architectury Loom IDE-sync issue already documented in
+    // forge-1.20.1: source-generation task registration for decompilers can fail at
+    // configuration time with mapping-tree validation errors. Clearing the decompiler
+    // list prevents per-decompiler tasks like genSourcesWithCfr from being created,
+    // which keeps IDE sync usable. Build/compile/run behavior is unaffected; only the
+    // optional decompiled vanilla sources task path is disabled.
+    decompilerOptions.clear()
+
     neoForge {
         runs {
             all {}

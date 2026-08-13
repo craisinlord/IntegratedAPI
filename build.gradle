@@ -37,6 +37,36 @@ allprojects {
     }
 }
 
+def releaseVersionForProject = { Project p ->
+    if (p.name.endsWith('1.20.1')) {
+        return 17
+    }
+    if (p.name.endsWith('1.21.1')) {
+        return 21
+    }
+    return null
+}
+
+configure(subprojects.findAll { releaseVersionForProject(it) != null }) {
+    def javaRelease = releaseVersionForProject(it)
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(javaRelease)
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.release = javaRelease
+    }
+
+    tasks.withType(JavaExec).configureEach {
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(javaRelease)
+        }
+    }
+}
+
 def architecturyProjectNames = [
     'common-1.20.1', 'fabric-1.20.1', 'forge-1.20.1',
     'common-1.21.1', 'fabric-1.21.1', 'neoforge-1.21.1',
@@ -56,15 +86,82 @@ tasks.named('jar') {
 }
 
 def groupBDir = file('group-b')
+def groupCDir = file('group-c')
 def groupBWrapper = providers.systemProperty('os.name').get().toLowerCase().contains('win')
         ? new File(groupBDir, 'gradlew.bat')
         : new File(groupBDir, 'gradlew')
+def groupCWrapper = providers.systemProperty('os.name').get().toLowerCase().contains('win')
+        ? new File(groupCDir, 'gradlew.bat')
+        : new File(groupCDir, 'gradlew')
 
-['build', 'assemble', 'clean', 'runClient', 'runServer'].each { name ->
-    tasks.register("groupB${name.capitalize()}", Exec) {
-        group = 'group-b'
-        description = "Runs ':${name}' inside the group-b build"
-        workingDir = groupBDir
-        commandLine groupBWrapper.absolutePath, name
+def registerExternalTask = { String taskName, String taskGroup, String description, File workingDir, File wrapper, String... arguments ->
+    tasks.register(taskName, Exec) {
+        group = taskGroup
+        this.description = description
+        setWorkingDir(workingDir)
+        commandLine wrapper.absolutePath, *arguments
     }
 }
+
+['build', 'assemble', 'clean', 'runClient', 'runServer'].each { name ->
+    registerExternalTask("groupB${name.capitalize()}", 'group-b', "Runs ':${name}' inside the group-b build", groupBDir, groupBWrapper, name)
+    registerExternalTask("groupC${name.capitalize()}", 'group-c', "Runs ':${name}' inside the group-c build", groupCDir, groupCWrapper, name)
+}
+
+tasks.named('build') {
+    dependsOn 'groupBBuild', 'groupCBuild'
+}
+
+tasks.named('assemble') {
+    dependsOn 'groupBAssemble', 'groupCAssemble'
+}
+
+tasks.named('clean') {
+    dependsOn 'groupBClean', 'groupCClean'
+}
+
+tasks.register('build261') {
+    group = 'group-b'
+    description = 'Builds the 26.1 Fabric and NeoForge artifacts'
+    dependsOn 'groupBBuild'
+}
+
+tasks.register('assemble261') {
+    group = 'group-b'
+    description = 'Assembles the 26.1 Fabric and NeoForge artifacts'
+    dependsOn 'groupBAssemble'
+}
+
+tasks.register('clean261') {
+    group = 'group-b'
+    description = 'Cleans the 26.1 build outputs'
+    dependsOn 'groupBClean'
+}
+
+tasks.register('build262') {
+    group = 'group-c'
+    description = 'Builds the 26.2 Fabric and NeoForge artifacts'
+    dependsOn 'groupCBuild'
+}
+
+tasks.register('assemble262') {
+    group = 'group-c'
+    description = 'Assembles the 26.2 Fabric and NeoForge artifacts'
+    dependsOn 'groupCAssemble'
+}
+
+tasks.register('clean262') {
+    group = 'group-c'
+    description = 'Cleans the 26.2 build outputs'
+    dependsOn 'groupCClean'
+}
+
+registerExternalTask('runFabric261Client', 'group-b', 'Runs Fabric 26.1 client inside the group-b build', groupBDir, groupBWrapper, ':fabric-26.1:runClient')
+registerExternalTask('runFabric261Server', 'group-b', 'Runs Fabric 26.1 server inside the group-b build', groupBDir, groupBWrapper, ':fabric-26.1:runServer')
+registerExternalTask('runNeoForge261Client', 'group-b', 'Runs NeoForge 26.1 client inside the group-b build', groupBDir, groupBWrapper, ':neoforge-26.1:runClient')
+registerExternalTask('runNeoForge261Server', 'group-b', 'Runs NeoForge 26.1 server inside the group-b build', groupBDir, groupBWrapper, ':neoforge-26.1:runServer')
+
+registerExternalTask('runFabric262Client', 'group-c', 'Runs Fabric 26.2 client inside the group-c build', groupCDir, groupCWrapper, ':fabric-26.2:runClient')
+registerExternalTask('runFabric262Server', 'group-c', 'Runs Fabric 26.2 server inside the group-c build', groupCDir, groupCWrapper, ':fabric-26.2:runServer')
+registerExternalTask('runNeoForge262Client', 'group-c', 'Runs NeoForge 26.2 client inside the group-c build', groupCDir, groupCWrapper, ':neoforge-26.2:runClient')
+registerExternalTask('runNeoForge262Server', 'group-c', 'Runs NeoForge 26.2 server inside the group-c build', groupCDir, groupCWrapper, ':neoforge-26.2:runServer')

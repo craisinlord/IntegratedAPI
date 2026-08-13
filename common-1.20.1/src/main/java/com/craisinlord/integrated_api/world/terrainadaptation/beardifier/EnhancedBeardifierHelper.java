@@ -132,8 +132,9 @@ public class EnhancedBeardifierHelper {
         while (data.getEnhancedRigidIterator() != null && data.getEnhancedRigidIterator().hasNext()) {
             EnhancedBeardifierRigid rigid = data.getEnhancedRigidIterator().next();
             BoundingBox pieceBoundingBox = rigid.pieceBoundingBox();
-            int adjustedPieceMinY = pieceBoundingBox.minY();
             EnhancedTerrainAdaptation pieceTerrainAdaptation = rigid.pieceTerrainAdaptation();
+            boolean inverted = pieceTerrainAdaptation.direction().isInverted();
+            int beardBaseY = inverted ? pieceBoundingBox.maxY() : pieceBoundingBox.minY();
 
             /* Get the distance from the pieceBoundingBox along each axis.
              * If within the bounding box, all of these are simply 0.
@@ -142,9 +143,9 @@ public class EnhancedBeardifierHelper {
              * I don't know, I'm just recreating vanilla logic here.
              */
             int xDistanceToBoundingBox = Math.max(0, Math.max(pieceBoundingBox.minX() - x, x - pieceBoundingBox.maxX()));
-            int yDistanceToBoundingBox = Math.max(0, Math.max(adjustedPieceMinY - y, y - pieceBoundingBox.maxY()));
+            int yDistanceToBoundingBox = Math.max(0, Math.max(pieceBoundingBox.minY() - y, y - pieceBoundingBox.maxY()));
             int zDistanceToBoundingBox = Math.max(0, Math.max(pieceBoundingBox.minZ() - z, z - pieceBoundingBox.maxZ()));
-            int yDistanceToAdjustedPieceBottom = y - adjustedPieceMinY;
+            int yDistanceToBeardBase = inverted ? beardBaseY - y : y - beardBaseY;
 
             // Calculate density factor and add to density value
             double densityFactor = 0;
@@ -153,7 +154,7 @@ public class EnhancedBeardifierHelper {
                         xDistanceToBoundingBox,
                         yDistanceToBoundingBox,
                         zDistanceToBoundingBox,
-                        yDistanceToAdjustedPieceBottom
+                        yDistanceToBeardBase
                 ) * 0.8D;
             }
 
@@ -167,7 +168,9 @@ public class EnhancedBeardifierHelper {
             JigsawJunction jigsawJunction = enhancedJigsawJunction.jigsawJunction();
             EnhancedTerrainAdaptation pieceTerrainAdaptation = enhancedJigsawJunction.pieceTerrainAdaptation();
             int xDistanceToJunction = x - jigsawJunction.getSourceX();
-            int yDistanceToJunction = y - jigsawJunction.getSourceGroundY();
+            int yDistanceToJunction = pieceTerrainAdaptation.direction().isInverted()
+                    ? jigsawJunction.getSourceGroundY() - y
+                    : y - jigsawJunction.getSourceGroundY();
             int zDistanceToJunction = z - jigsawJunction.getSourceZ();
             density += pieceTerrainAdaptation.computeDensityFactor(
                     xDistanceToJunction,

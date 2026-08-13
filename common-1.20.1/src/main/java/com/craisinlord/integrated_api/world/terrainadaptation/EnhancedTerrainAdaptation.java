@@ -21,6 +21,7 @@ public abstract class EnhancedTerrainAdaptation {
      * Used to ensure pieces like village houses don't spawn floating in air.
      */
     private final boolean doBearding;
+    private final TerrainAdaptationDirection direction;
 
     /**
      * The length of each dimension in the kernel.
@@ -43,10 +44,15 @@ public abstract class EnhancedTerrainAdaptation {
     abstract public EnhancedTerrainAdaptationType<?> type();
 
     EnhancedTerrainAdaptation(int kernelSize, int kernelDistance, boolean doCarving, boolean doBearding) {
+        this(kernelSize, kernelDistance, doCarving, doBearding, TerrainAdaptationDirection.DOWN);
+    }
+
+    EnhancedTerrainAdaptation(int kernelSize, int kernelDistance, boolean doCarving, boolean doBearding, TerrainAdaptationDirection direction) {
         this.kernelSize = kernelSize;
         this.kernelDistance = kernelDistance;
         this.doCarving = doCarving;
         this.doBearding = doBearding;
+        this.direction = direction;
         int kernelRadius = this.getKernelRadius();
         this.kernel = Util.make(new float[kernelSize * kernelSize * kernelSize], (kernel) -> {
             for (int x = 0; x < kernelSize; ++x) {
@@ -79,6 +85,10 @@ public abstract class EnhancedTerrainAdaptation {
 
     public boolean beards() {
         return this.doBearding;
+    }
+
+    public TerrainAdaptationDirection direction() {
+        return this.direction;
     }
 
     public int getKernelSize() {
