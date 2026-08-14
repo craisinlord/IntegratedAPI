@@ -18,6 +18,6 @@ public final class IAStructures {
     public static RegistryEntry<StructureType<NetherJigsawStructure>> NETHER_JIGSAW_STRUCTURE = STRUCTURE_TYPE.register("nether_structure", () -> () -> NetherJigsawStructure.CODEC);
     public static RegistryEntry<StructureType<OverLavaNetherStructure>> OVER_LAVA_NETHER_STRUCTURE = STRUCTURE_TYPE.register("over_lava_nether_structure", () -> () -> OverLavaNetherStructure.CODEC);
     public static RegistryEntry<StructureType<BiomeFacingStructure>> BIOME_FACING_STRUCTURE = STRUCTURE_TYPE.register("biome_facing_structure", () -> () -> BiomeFacingStructure.CODEC);
+    public static RegistryEntry<StructureType<CeilingStructure>> CEILING_STRUCTURE = STRUCTURE_TYPE.register("ceiling_structure", () -> () -> CeilingStructure.CODEC);
 }
-
 
