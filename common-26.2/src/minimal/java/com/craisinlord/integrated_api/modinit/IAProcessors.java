@@ -17,6 +17,7 @@ import com.craisinlord.integrated_api.world.processors.RemoveFloatingBlocksProce
 import com.craisinlord.integrated_api.world.processors.ReplaceAirOnlyProcessor;
 import com.craisinlord.integrated_api.world.processors.ReplaceLiquidOnlyProcessor;
 import com.craisinlord.integrated_api.world.processors.SpawnerRandomizingProcessor;
+import com.craisinlord.integrated_api.world.processors.TrialSpawnerProcessor;
 import com.craisinlord.integrated_api.world.processors.TickBlocksProcessor;
 import com.craisinlord.integrated_api.world.processors.WaterlogWhenReplacingWaterProcessor;
 import com.craisinlord.integrated_api.world.processors.WaterloggingFixProcessor;
@@ -68,6 +69,8 @@ public final class IAProcessors {
             STRUCTURE_PROCESSOR.register("tick_blocks_processor", () -> TickBlocksProcessor.CODEC);
     public static final RegistryEntry<MapCodec<? extends StructureProcessor>> SPAWNER_RANDOMIZING_PROCESSOR =
             STRUCTURE_PROCESSOR.register("spawner_randomizing_processor", () -> SpawnerRandomizingProcessor.CODEC);
+    public static final RegistryEntry<MapCodec<? extends StructureProcessor>> TRIAL_SPAWNER_PROCESSOR =
+            STRUCTURE_PROCESSOR.register("trial_spawner_processor", () -> TrialSpawnerProcessor.CODEC);
     public static final RegistryEntry<MapCodec<? extends StructureProcessor>> WORKSTATION_PROCESSOR =
             STRUCTURE_PROCESSOR.register("workstation_processor", () -> WorkstationProcessor.CODEC);
     public static final RegistryEntry<MapCodec<? extends StructureProcessor>> COBBLEMON_TRAINER_PROCESSOR =

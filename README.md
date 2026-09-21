@@ -245,6 +245,36 @@ Example shape:
 - `integrated_api:replace_air_only_processor`: If the world block at position is air, it keeps air instead of placing your structure block (with `blocks_to_always_place` exceptions). Use to avoid filling caves/open air pockets.
 - `integrated_api:replace_liquids_only_processor`: If the world block has fluid, it keeps the fluid instead of placing your structure block (with `blocks_to_always_place` exceptions). Use to keep water/lava volume in fluid-heavy areas.
 - `integrated_api:spawner_randomizing_processor`: Rewrites spawner NBT from a weighted mob pool keyed by `integrated_api_spawner_resourcelocation`, with optional light limits and spawn timings; falls back to `spawner_replacement_block` if no mob is available. Use with `integrated_structure_spawners` datapack entries.
+- `integrated_api:trial_spawner_processor`: Converts optional vanilla spawners into trial spawners, replaces normal and ominous reward tables, and applies trial-spawner settings using the same weighted mob pool and light-limit fields as `spawner_randomizing_processor`.
+
+```json
+{
+  "processor_type": "integrated_api:trial_spawner_processor",
+  "loot_table": "example:rewards",
+  "ominous_loot_table": "example:ominous_rewards",
+  "integrated_api_spawner_resourcelocation": "example:trial_mobs",
+  "replace_vanilla_spawners": true,
+  "normal_config": {
+    "spawn_range": 4,
+    "total_mobs": 6.0,
+    "simultaneous_mobs": 2.0,
+    "total_mobs_added_per_player": 2.0,
+    "simultaneous_mobs_added_per_player": 1.0,
+    "ticks_between_spawn": 40
+  },
+  "ominous_config": {
+    "spawn_range": 4,
+    "total_mobs": 6.0,
+    "simultaneous_mobs": 2.0,
+    "total_mobs_added_per_player": 2.0,
+    "simultaneous_mobs_added_per_player": 1.0,
+    "ticks_between_spawn": 40,
+    "items_to_drop_when_ominous": "example:ominous_items"
+  },
+  "target_cooldown_length": 36000,
+  "required_player_range": 14
+}
+```
 - `integrated_api:fill_end_portal_frame_processor`: Randomly toggles End Portal Frame eyes using `probability_per_block`. Use to randomize portal completion rate.
 - `integrated_api:remove_floating_blocks_processor`: Cleans up invalid floating survivability blocks around edited air/fluid space. Use after heavy replacement/flood processors to remove floating plants/attachments.
 - `integrated_api:close_off_fluid_sources_processor`: Replaces neighboring source fluids around non-solid structure edges using `weighted_list_of_replacement_blocks`; supports `ignore_down` and `if_air_in_world`. Use to stop lava/water leakage into interiors.
