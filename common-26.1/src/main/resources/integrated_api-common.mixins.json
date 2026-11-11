@@ -5,14 +5,22 @@
   "mixins": [
     "blocks.StructureBlockUnlimit",
     "blocks.UpdateStructureBlockUnlimit",
+    "entities.AbstractVillagerMixin",
     "entities.BlockAttachedEntityMixin",
+    "entities.MerchantOfferAccessor",
+    "features.DungeonFeatureAccessor",
     "features.NoGeodesInStructuresMixin",
+    "items.MapItemAccessor",
     "structures.BeardifierMixin",
+    "structures.DisableStructuresMixin",
     "structures.JigsawJunctionAccessor",
+    "structures.JigsawPlacementUnlimit",
+    "structures.LocateCommandMixin",
     "structures.SinglePoolElementAccessor",
     "structures.StructurePoolAccessor"
   ],
   "client": [
+    "blocks.StructureBlockRenderMixin",
     "blocks.StructureBlockScreenMixin"
   ],
   "injectors": {

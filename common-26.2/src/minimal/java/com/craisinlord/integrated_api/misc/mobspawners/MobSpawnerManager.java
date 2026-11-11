@@ -2,15 +2,16 @@ package com.craisinlord.integrated_api.misc.mobspawners;
 
 import com.craisinlord.integrated_api.IntegratedAPI;
 import com.craisinlord.integrated_api.misc.reload.GsonJsonReloadListener;
+import com.craisinlord.integrated_api.mixins.features.DungeonFeatureAccessor;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.Util;
 import net.minecraft.world.entity.EntityType;
 import org.apache.logging.log4j.Level;
 
@@ -62,7 +63,7 @@ public final class MobSpawnerManager extends GsonJsonReloadListener {
         List<MobSpawnerObj> spawnerMobEntries = this.spawnerMap.get(spawnerJsonEntry);
         if (spawnerMobEntries == null || spawnerMobEntries.isEmpty()) {
             IntegratedAPI.LOGGER.log(Level.ERROR, "Failed to get mob for {}", spawnerJsonEntry);
-            return BuiltInRegistries.ENTITY_TYPE.get(Identifier.withDefaultNamespace("pig")).map(holder -> holder.value()).orElse(null);
+            return Util.getRandom(DungeonFeatureAccessor.getMOBS(), random);
         }
 
         float totalWeight = 0;

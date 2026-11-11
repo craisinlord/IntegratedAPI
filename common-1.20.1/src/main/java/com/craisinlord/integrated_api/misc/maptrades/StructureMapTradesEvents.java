@@ -62,7 +62,7 @@ public final class StructureMapTradesEvents {
                             mapTrade.spawnRegionSearchRadius));
                 }
                 else if (tradeEntry.getKey() == WanderingTraderMapObj.TRADE_TYPE.COMMON) {
-                    event.addRareTrade(new StructureSpecificMaps.TreasureMapForEmeralds(
+                    event.addBasicTrade(new StructureSpecificMaps.TreasureMapForEmeralds(
                             mapTrade.emeraldsRequired,
                             mapTrade.structure,
                             mapTrade.mapName,

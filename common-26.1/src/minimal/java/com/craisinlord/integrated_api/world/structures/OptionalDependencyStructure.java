@@ -5,7 +5,7 @@ import com.craisinlord.integrated_api.modinit.IAStructures;
 import com.craisinlord.integrated_api.utils.PlatformHooks;
 import com.craisinlord.integrated_api.world.structures.codecs.YRangeAllowance;
 import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptation;
-import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptationType;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -35,17 +35,21 @@ public class OptionalDependencyStructure extends JigsawStructure {
             Codec.STRING.optionalFieldOf("required_mods").forGetter(structure -> structure.requiredMod),
             Codec.STRING.optionalFieldOf("illegal_mods").forGetter(structure -> structure.illegalMod),
             Codec.BOOL.fieldOf("rotation_fixed").orElse(false).forGetter(structure -> structure.rotationFixed),
-            EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE).forGetter(structure -> structure.enhancedTerrainAdaptation),
+            JigsawStructure.TERRAIN_ADAPTATION_CODEC.forGetter(structure -> Pair.of(structure.enhancedTerrainAdaptation, structure.overridePieceTerrainAdaptation)),
             LiquidSettings.CODEC.optionalFieldOf("liquid_settings", net.minecraft.world.level.levelgen.structure.structures.JigsawStructure.DEFAULT_LIQUID_SETTINGS).forGetter(structure -> structure.liquidSettings)
     ).apply(instance, OptionalDependencyStructure::new));
 
     public final Optional<String> requiredMod;
     public final Optional<String> illegalMod;
 
-    public OptionalDependencyStructure(StructureSettings config, Holder<StructureTemplatePool> startPool, int size, Optional<YRangeAllowance> yAllowance, HeightProvider startHeight, Optional<Heightmap.Types> projectStartToHeightmap, boolean cannotSpawnInLiquid, Optional<Integer> terrainHeightCheckRadius, Optional<Integer> allowedTerrainHeightRange, Optional<Integer> biomeRadius, Optional<Integer> maxDistanceFromCenter, Optional<String> requiredMod, Optional<String> illegalMod, boolean rotationFixed, EnhancedTerrainAdaptation enhancedTerrainAdaptation, LiquidSettings liquidSettings) {
-        super(config, startPool, size, yAllowance, startHeight, projectStartToHeightmap, cannotSpawnInLiquid, terrainHeightCheckRadius, allowedTerrainHeightRange, biomeRadius, maxDistanceFromCenter, Optional.empty(), rotationFixed, enhancedTerrainAdaptation, liquidSettings);
+    public OptionalDependencyStructure(StructureSettings config, Holder<StructureTemplatePool> startPool, int size, Optional<YRangeAllowance> yAllowance, HeightProvider startHeight, Optional<Heightmap.Types> projectStartToHeightmap, boolean cannotSpawnInLiquid, Optional<Integer> terrainHeightCheckRadius, Optional<Integer> allowedTerrainHeightRange, Optional<Integer> biomeRadius, Optional<Integer> maxDistanceFromCenter, Optional<String> requiredMod, Optional<String> illegalMod, boolean rotationFixed, EnhancedTerrainAdaptation enhancedTerrainAdaptation, boolean overridePieceTerrainAdaptation, LiquidSettings liquidSettings) {
+        super(config, startPool, size, yAllowance, startHeight, projectStartToHeightmap, cannotSpawnInLiquid, terrainHeightCheckRadius, allowedTerrainHeightRange, biomeRadius, maxDistanceFromCenter, Optional.empty(), rotationFixed, enhancedTerrainAdaptation, overridePieceTerrainAdaptation, liquidSettings);
         this.requiredMod = requiredMod;
         this.illegalMod = illegalMod;
+    }
+
+    private OptionalDependencyStructure(StructureSettings config, Holder<StructureTemplatePool> startPool, int size, Optional<YRangeAllowance> yAllowance, HeightProvider startHeight, Optional<Heightmap.Types> projectStartToHeightmap, boolean cannotSpawnInLiquid, Optional<Integer> terrainHeightCheckRadius, Optional<Integer> allowedTerrainHeightRange, Optional<Integer> biomeRadius, Optional<Integer> maxDistanceFromCenter, Optional<String> requiredMod, Optional<String> illegalMod, boolean rotationFixed, Pair<EnhancedTerrainAdaptation, Boolean> terrainAdaptation, LiquidSettings liquidSettings) {
+        this(config, startPool, size, yAllowance, startHeight, projectStartToHeightmap, cannotSpawnInLiquid, terrainHeightCheckRadius, allowedTerrainHeightRange, biomeRadius, maxDistanceFromCenter, requiredMod, illegalMod, rotationFixed, terrainAdaptation.getFirst(), terrainAdaptation.getSecond(), liquidSettings);
     }
 
     private ArrayList<String> convertModList(String modList) {
@@ -69,7 +73,7 @@ public class OptionalDependencyStructure extends JigsawStructure {
         if (this.requiredMod.isPresent()) {
             ArrayList<String> requiredMods = convertModList(this.requiredMod.get());
             for (String mod : requiredMods) {
-                if (!PlatformHooks.isModLoaded(mod)) {
+                if (!isLoaded(mod)) {
                     IntegratedAPI.LOGGER.debug("Attempted to spawn Integrated API structure but not all required mods {} are present.", requiredMods);
                     return false;
                 }
@@ -78,13 +82,17 @@ public class OptionalDependencyStructure extends JigsawStructure {
         if (this.illegalMod.isPresent()) {
             ArrayList<String> illegalMods = convertModList(this.illegalMod.get());
             for (String mod : illegalMods) {
-                if (PlatformHooks.isModLoaded(mod)) {
+                if (isLoaded(mod)) {
                     IntegratedAPI.LOGGER.debug("Attempted to spawn Integrated API structure but illegal mods {} are present.", illegalMods);
                     return false;
                 }
             }
         }
         return true;
+    }
+
+    public boolean isLoaded(String name) {
+        return PlatformHooks.isModLoaded(name);
     }
 
     @Override

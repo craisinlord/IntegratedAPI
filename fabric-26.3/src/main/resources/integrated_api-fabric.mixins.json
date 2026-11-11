@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.craisinlord.integrated_api.mixins",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "blocks.DetectorRailBlockMixin",
+    "blocks.PoweredRailBlockMixin",
+    "blocks.RailBlockMixin",
+    "structures.StructurePoolMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -36,17 +36,21 @@ public class EnhancedBeardifierHelper {
         int chunkMinBlockZ = chunkPos.getMinBlockZ();
         List<StructureStart> structureStarts = structureManager.startsForStructure(chunkPos, structure -> structure instanceof JigsawStructure);
         for (StructureStart structureStart : structureStarts) {
-            EnhancedTerrainAdaptation structureTerrainAdaptation = ((JigsawStructure) structureStart.getStructure()).enhancedTerrainAdaptation;
+            JigsawStructure jigsawStructure = (JigsawStructure) structureStart.getStructure();
+            EnhancedTerrainAdaptation structureTerrainAdaptation = jigsawStructure.enhancedTerrainAdaptation;
+            boolean overridePieceTerrainAdaptation = jigsawStructure.overridePieceTerrainAdaptation;
 
             // Determine max kernel radius in the structure.
             // Both the structure itself and any pieces may specify an enhanced terrain adaptation, so we must
             // check everything.
             int kernelRadius = structureTerrainAdaptation.getKernelRadius();
-            for (StructurePiece structurePiece : structureStart.getPieces()) {
-                if (structurePiece instanceof PoolElementStructurePiece poolPiece
-                        && poolPiece.getElement() instanceof IAPoolElement iaElement
-                        && iaElement.getEnhancedTerrainAdaptation().isPresent()) {
-                    kernelRadius = Math.max(kernelRadius, iaElement.getEnhancedTerrainAdaptation().get().getKernelRadius());
+            if (!overridePieceTerrainAdaptation) {
+                for (StructurePiece structurePiece : structureStart.getPieces()) {
+                    if (structurePiece instanceof PoolElementStructurePiece poolPiece
+                            && poolPiece.getElement() instanceof IAPoolElement iaElement
+                            && iaElement.getEnhancedTerrainAdaptation().isPresent()) {
+                        kernelRadius = Math.max(kernelRadius, iaElement.getEnhancedTerrainAdaptation().get().getKernelRadius());
+                    }
                 }
             }
 
@@ -67,7 +71,7 @@ public class EnhancedBeardifierHelper {
 
                     // Check if piece overrides terrain adaptation
                     EnhancedTerrainAdaptation pieceTerrainAdaptation = structureTerrainAdaptation;
-                    if (poolElementPiece.getElement() instanceof IAPoolElement iaElement && iaElement.getEnhancedTerrainAdaptation().isPresent()) {
+                    if (!overridePieceTerrainAdaptation && poolElementPiece.getElement() instanceof IAPoolElement iaElement && iaElement.getEnhancedTerrainAdaptation().isPresent()) {
                         pieceTerrainAdaptation = iaElement.getEnhancedTerrainAdaptation().get();
                     }
 
@@ -110,9 +114,14 @@ public class EnhancedBeardifierHelper {
             }
         }
 
-        ((EnhancedBeardifierData) original).setEnhancedRigidIterator(enhancedBeardifierRigidList.iterator());
-        ((EnhancedBeardifierData) original).setEnhancedJunctionIterator(enhancedJunctionList.iterator());
-        return original;
+        if (enhancedBeardifierRigidList.isEmpty() && enhancedJunctionList.isEmpty()) {
+            return original;
+        }
+
+        Beardifier beardifier = original == Beardifier.EMPTY ? new Beardifier(List.of(), List.of(), null) : original;
+        ((EnhancedBeardifierData) beardifier).setEnhancedRigidIterator(enhancedBeardifierRigidList.iterator());
+        ((EnhancedBeardifierData) beardifier).setEnhancedJunctionIterator(enhancedJunctionList.iterator());
+        return beardifier;
     }
 
     /**

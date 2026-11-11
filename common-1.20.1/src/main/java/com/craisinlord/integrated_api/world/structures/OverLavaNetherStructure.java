@@ -3,7 +3,7 @@ package com.craisinlord.integrated_api.world.structures;
 import com.craisinlord.integrated_api.IntegratedAPI;
 import com.craisinlord.integrated_api.modinit.IAStructures;
 import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptation;
-import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptationType;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
@@ -40,7 +40,7 @@ public class OverLavaNetherStructure extends JigsawStructure {
             Codec.intRange(1, IntegratedAPI.NEW_STRUCTURE_SIZE).optionalFieldOf("max_distance_from_center").forGetter(structure -> structure.maxDistanceFromCenter),
             StringRepresentable.fromEnum(BURYING_TYPE::values).optionalFieldOf("burying_type").forGetter(structure -> structure.buryingType),
             Codec.BOOL.fieldOf("rotation_fixed").orElse(false).forGetter(structure -> structure.rotationFixed),
-            EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE).forGetter(structure -> structure.enhancedTerrainAdaptation)
+            JigsawStructure.TERRAIN_ADAPTATION_CODEC.forGetter(structure -> Pair.of(structure.enhancedTerrainAdaptation, structure.overridePieceTerrainAdaptation))
     ).apply(instance, OverLavaNetherStructure::new));
 
     public OverLavaNetherStructure(StructureSettings config,
@@ -58,7 +58,8 @@ public class OverLavaNetherStructure extends JigsawStructure {
                                    Optional<Integer> maxDistanceFromCenter,
                                    Optional<BURYING_TYPE> buryingType,
                                    boolean rotationFixed,
-                                   EnhancedTerrainAdaptation enhancedTerrainAdaptation)
+                                   EnhancedTerrainAdaptation enhancedTerrainAdaptation,
+                                   boolean overridePieceTerrainAdaptation)
     {
         super(config,
                 startPool,
@@ -75,7 +76,43 @@ public class OverLavaNetherStructure extends JigsawStructure {
                 maxDistanceFromCenter,
                 buryingType,
                 rotationFixed,
-                enhancedTerrainAdaptation);
+                enhancedTerrainAdaptation,
+                overridePieceTerrainAdaptation);
+    }
+
+    private OverLavaNetherStructure(StructureSettings config,
+                                    Holder<StructureTemplatePool> startPool,
+                                    int size,
+                                    Optional<Integer> minYAllowed,
+                                    Optional<Integer> maxYAllowed,
+                                    Optional<Integer> allowedYRangeFromStart,
+                                    HeightProvider startHeight,
+                                    Optional<Heightmap.Types> projectStartToHeightmap,
+                                    boolean cannotSpawnInLiquid,
+                                    Optional<Integer> terrainHeightCheckRadius,
+                                    Optional<Integer> allowedTerrainHeightRange,
+                                    Optional<Integer> biomeRadius,
+                                    Optional<Integer> maxDistanceFromCenter,
+                                    Optional<BURYING_TYPE> buryingType,
+                                    boolean rotationFixed,
+                                    Pair<EnhancedTerrainAdaptation, Boolean> terrainAdaptation) {
+        this(config,
+                startPool,
+                size,
+                minYAllowed,
+                maxYAllowed,
+                allowedYRangeFromStart,
+                startHeight,
+                projectStartToHeightmap,
+                cannotSpawnInLiquid,
+                terrainHeightCheckRadius,
+                allowedTerrainHeightRange,
+                biomeRadius,
+                maxDistanceFromCenter,
+                buryingType,
+                rotationFixed,
+                terrainAdaptation.getFirst(),
+                terrainAdaptation.getSecond());
     }
 
     @Override

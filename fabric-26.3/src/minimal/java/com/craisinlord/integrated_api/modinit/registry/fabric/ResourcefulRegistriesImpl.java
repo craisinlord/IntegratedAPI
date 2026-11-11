@@ -1,0 +1,32 @@
+package com.craisinlord.integrated_api.modinit.registry.fabric;
+
+import com.craisinlord.integrated_api.modinit.registry.CustomRegistryLookup;
+import com.craisinlord.integrated_api.modinit.registry.ResourcefulRegistry;
+import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
+import net.fabricmc.fabric.api.event.registry.RegistryAttribute;
+import net.minecraft.core.MappedRegistry;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.function.Supplier;
+
+public final class ResourcefulRegistriesImpl {
+    private ResourcefulRegistriesImpl() {
+    }
+
+    public static <T> ResourcefulRegistry<T> create(Registry<T> registry, String id) {
+        return new CustomResourcefulRegistry<>(registry, id);
+    }
+
+    public static <T, K extends Registry<T>> Pair<Supplier<CustomRegistryLookup<T, T>>, ResourcefulRegistry<T>> createCustomRegistryInternal(
+            String modId, ResourceKey<K> key, boolean save, boolean sync, boolean allowModification
+    ) {
+        FabricRegistryBuilder<T, MappedRegistry<T>> registry = FabricRegistryBuilder.create((ResourceKey<Registry<T>>) key);
+        if (sync) registry.attribute(RegistryAttribute.SYNCED);
+        if (allowModification) registry.attribute(RegistryAttribute.MODDED);
+        MappedRegistry<T> builtRegistry = registry.buildAndRegister();
+        CustomRegistry<T> customRegistry = new CustomRegistry<>(builtRegistry);
+        return Pair.of(() -> customRegistry, new CustomResourcefulRegistry<>(builtRegistry, modId));
+    }
+}

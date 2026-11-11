@@ -8,6 +8,7 @@ import com.craisinlord.integrated_api.world.structures.pieces.manager.PieceLimit
 import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptation;
 import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptationType;
 import com.google.common.collect.Maps;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -37,6 +38,10 @@ import java.util.*;
 
 public class JigsawStructure extends Structure {
 
+    public static final MapCodec<Pair<EnhancedTerrainAdaptation, Boolean>> TERRAIN_ADAPTATION_CODEC = Codec.mapPair(
+            EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE),
+            Codec.BOOL.optionalFieldOf("override_piece_terrain_adaptation", false));
+
     public static final MapCodec<JigsawStructure> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             JigsawStructure.settingsCodec(instance),
             StructureTemplatePool.CODEC.fieldOf("start_pool").forGetter(structure -> structure.startPool),
@@ -52,6 +57,7 @@ public class JigsawStructure extends Structure {
             StringRepresentable.fromEnum(BURYING_TYPE::values).optionalFieldOf("burying_type").forGetter(structure -> structure.buryingType),
             Codec.BOOL.fieldOf("rotation_fixed").orElse(false).forGetter(structure -> structure.rotationFixed),
             EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE).forGetter(structure -> structure.enhancedTerrainAdaptation),
+            Codec.BOOL.optionalFieldOf("override_piece_terrain_adaptation", false).forGetter(structure -> structure.overridePieceTerrainAdaptation),
             LiquidSettings.CODEC.optionalFieldOf("liquid_settings", net.minecraft.world.level.levelgen.structure.structures.JigsawStructure.DEFAULT_LIQUID_SETTINGS).forGetter(structure -> structure.liquidSettings)
     ).apply(instance, JigsawStructure::new));
 
@@ -68,6 +74,7 @@ public class JigsawStructure extends Structure {
     public final Optional<BURYING_TYPE> buryingType;
     public final boolean rotationFixed;
     public final EnhancedTerrainAdaptation enhancedTerrainAdaptation;
+    public final boolean overridePieceTerrainAdaptation;
     public final LiquidSettings liquidSettings;
 
     public JigsawStructure(Structure.StructureSettings config,
@@ -84,6 +91,7 @@ public class JigsawStructure extends Structure {
                            Optional<BURYING_TYPE> buryingType,
                            boolean rotationFixed,
                            EnhancedTerrainAdaptation enhancedTerrainAdaptation,
+                           boolean overridePieceTerrainAdaptation,
                            LiquidSettings liquidSettings)
     {
         super(config);
@@ -100,6 +108,7 @@ public class JigsawStructure extends Structure {
         this.buryingType = buryingType;
         this.rotationFixed = rotationFixed;
         this.enhancedTerrainAdaptation = enhancedTerrainAdaptation;
+        this.overridePieceTerrainAdaptation = overridePieceTerrainAdaptation;
         this.liquidSettings = liquidSettings;
 
         if (yAllowance.isPresent() && yAllowance.get().maxYAllowed.isPresent() && yAllowance.get().minYAllowed.isPresent() && yAllowance.get().maxYAllowed.get() < yAllowance.get().minYAllowed.get()) {

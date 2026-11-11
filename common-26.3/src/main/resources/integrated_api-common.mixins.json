@@ -1,0 +1,29 @@
+{
+  "required": true,
+  "package": "com.craisinlord.integrated_api.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "blocks.StructureBlockUnlimit",
+    "blocks.UpdateStructureBlockUnlimit",
+    "entities.AbstractVillagerMixin",
+    "entities.BlockAttachedEntityMixin",
+    "entities.MerchantOfferAccessor",
+    "features.DungeonFeatureAccessor",
+    "features.NoGeodesInStructuresMixin",
+    "structures.BeardifierMixin",
+    "structures.DisableStructuresMixin",
+    "structures.JigsawJunctionAccessor",
+    "structures.JigsawPlacementUnlimit",
+    "structures.LocateCommandMixin",
+    "structures.SinglePoolElementAccessor",
+    "structures.StructurePoolAccessor"
+  ],
+  "client": [
+    "blocks.StructureBlockRenderMixin",
+    "blocks.StructureBlockScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}

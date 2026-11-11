@@ -19,6 +19,12 @@ neoForge {
     runs {
         client { client() }
         server { server() }
+        data {
+            serverData()
+            programArguments.addAll('--mod', mod_id, '--all',
+                    '--output', rootProject.project(':common-26.2').file('src/main/generated/resources').absolutePath,
+                    '--existing', rootProject.project(':common-26.2').file('src/main/resources').absolutePath)
+        }
     }
 }
 

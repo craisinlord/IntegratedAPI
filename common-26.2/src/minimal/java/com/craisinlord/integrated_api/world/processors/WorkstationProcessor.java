@@ -74,6 +74,10 @@ public class WorkstationProcessor implements StructureProcessor {
         int totalWeight = 0;
 
         for (WorkstationObj entry : entries) {
+            if (!isEnabled(entry.requiredMod, enableIntegration)) {
+                continue;
+            }
+
             if (entry.outputBlock == null || !BuiltInRegistries.BLOCK.containsKey(entry.outputBlock)) {
                 continue;
             }
@@ -113,12 +117,19 @@ public class WorkstationProcessor implements StructureProcessor {
         return Identifier.fromNamespaceAndPath(IntegratedAPI.MODID, workstationType);
     }
 
+    private static boolean isEnabled(String requiredMod, boolean enableIntegration) {
+        if (requiredMod == null || requiredMod.isEmpty() || "minecraft".equals(requiredMod)) {
+            return true;
+        }
+        return enableIntegration && PlatformHooks.isModLoaded(requiredMod);
+    }
+
     private static void logMissingType(Identifier workstationTypeId) {
         String key = workstationTypeId.toString();
         if (!LOGGED_MISSING_TYPES.add(key)) {
             return;
         }
-        IntegratedAPI.LOGGER.error("(Integrated API Workstation Processor) Missing workstation data for type '{}' at data/{}/workstations/{}.json",
+        IntegratedAPI.LOGGER.error("(Integrated API Workstation Processor) Missing workstation data for type '{}' at data/{}/integrated_workstations/{}.json",
                 workstationTypeId.getPath(),
                 workstationTypeId.getNamespace(),
                 workstationTypeId.getPath());

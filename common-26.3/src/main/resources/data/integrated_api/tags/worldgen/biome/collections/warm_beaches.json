@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:beach",
+    {
+      "id": "regions_unexplored:grassy_beach",
+      "required": false
+    }
+  ]
+}

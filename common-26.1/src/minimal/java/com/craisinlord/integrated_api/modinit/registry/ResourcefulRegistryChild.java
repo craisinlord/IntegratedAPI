@@ -3,7 +3,7 @@ package com.craisinlord.integrated_api.modinit.registry;
 import java.util.Collection;
 import java.util.function.Supplier;
 
-public final class ResourcefulRegistryChild<T> implements ResourcefulRegistry<T> {
+public class ResourcefulRegistryChild<T> implements ResourcefulRegistry<T> {
     private final ResourcefulRegistry<T> parent;
     private final RegistryEntries<T> entries = new RegistryEntries<>();
 

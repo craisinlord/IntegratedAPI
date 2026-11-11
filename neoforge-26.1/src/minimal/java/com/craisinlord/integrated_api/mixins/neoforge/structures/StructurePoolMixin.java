@@ -17,11 +17,9 @@ public class StructurePoolMixin {
      */
     @WrapOperation(
             method = {
-                "lambda$static$1",
-                "method_28886"
+                "lambda$static$0"
             },
             at = @At(value = "INVOKE", target = "Lcom/mojang/serialization/Codec;intRange(II)Lcom/mojang/serialization/Codec;"),
-            require = 0,
             remap = false
     )
     private static Codec<Integer> integratedapi_increaseWeightLimit(int minRange, int maxRange, Operation<Codec<Integer>> original) {

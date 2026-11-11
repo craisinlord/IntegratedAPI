@@ -1,10 +1,11 @@
-_# Integrated API (Minecraft 1.21.1)
+_# Integrated API (Minecraft 1.21.1 and 26.x)
 
 Integrated API is a structure-focused library mod for Fabric and NeoForge.
 
-This README is split into exactly two sections:
+This README is split into three sections:
 1. Datapack Guide (no Java required)
 2. Backend Worldgen Reference (advanced)
+3. Minecraft 26.x Builds
 
 ---
 
@@ -212,6 +213,7 @@ If you are extending Integrated API in code or building a mod API on top of it, 
 - `integrated_api:nether_structure` -> `NetherJigsawStructure`
 - `integrated_api:over_lava_nether_structure` -> `OverLavaNetherStructure`
 - `integrated_api:biome_facing_structure` -> `BiomeFacingStructure`
+- `integrated_api:ceiling_structure` -> `CeilingStructure`
 
 #### Structure placements (`BuiltInRegistries.STRUCTURE_PLACEMENT`)
 
@@ -318,6 +320,7 @@ Adds optional controls on top of vanilla jigsaw behavior:
 - fixed/random rotation
 - burying modes (`LOWEST_CORNER`, `AVERAGE_LAND`, `LOWEST_SIDE`)
 - enhanced terrain adaptation and liquid setting overrides
+- `override_piece_terrain_adaptation` (default `false`): applies the structure's `enhanced_terrain_adaptation` to every piece and ignores per-element `enhanced_terrain_adaptation` values
 
 Generation is delegated through `PieceLimitedJigsawManager` with piece-count and condition support.
 
@@ -341,6 +344,11 @@ Generation is delegated through `PieceLimitedJigsawManager` with piece-count and
 
 - Chooses rotation toward configured target biome groups.
 - It can be used to make a structure face a biome target, like a pirate dock spawning on a beach facing the ocean.
+
+#### `CeilingStructure`
+
+- Searches upward from `start_height` (up to `max_roof_search_distance`) for a solid roof at least `min_roof_thickness` thick with at least `min_open_space_below` air blocks under it.
+- Hangs the assembled structure from that roof, `ceiling_offset` blocks below it, and discards it if it would poke through the roof or leave the `y_allowance` range.
 
 ### Integrated Pool Element Extensions (`IASinglePoolElement`)
 
@@ -422,4 +430,60 @@ Generation is delegated through `PieceLimitedJigsawManager` with piece-count and
 - NeoForge:
   - biome modifier serializers and implementations
   - structure NBT updater datagen helper
-  - structure pool weight cap mixin_
+  - structure pool weight cap mixin
+
+---
+
+## 3) Minecraft 26.x Builds
+
+Minecraft 26.x versions are built by separate Gradle builds, one per Minecraft version:
+
+| Minecraft | Gradle build | Modules |
+| --- | --- | --- |
+| 26.1 | `group-b` | `common-26.1`, `fabric-26.1`, `neoforge-26.1` |
+| 26.2 | `group-c` | `common-26.2`, `fabric-26.2`, `neoforge-26.2` |
+| 26.3 | `group-d` | `common-26.3`, `fabric-26.3`, `neoforge-26.3` |
+
+Build 26.3 with:
+
+```
+cd group-d
+./gradlew :fabric-26.3:build :neoforge-26.3:build
+```
+
+### Source layout
+
+- The 26.x loader builds compile Java from `src/minimal/java` (the loader module plus its `common-26.x` module) and resources from `src/main/resources`.
+- `src/main/java` in the 26.x modules is not compiled.
+- 26.x runs on Java 25 with Mojang's unobfuscated names, so there are no refmaps or access wideners.
+- Loader hooks (`PlatformHooks`, `ResourcefulRegistries`) are initialized from the Fabric and NeoForge entrypoints instead of Architectury `@ExpectPlatform`.
+
+### 26.3 feature set
+
+26.3 has the same registry ids, data folder names and JSON formats as 1.21.1, so existing datapacks keep working:
+
+- All structure types, including `integrated_api:ceiling_structure`, plus every placement, processor, rule test and pool element.
+- All four reload systems, including `integrated_structure_map_trades`.
+- NeoForge biome modifiers `integrated_api:additions_modifier`, `integrated_api:additions_temperature_modifier` and `integrated_api:removals_modifier`. Like 1.21.1, there is no Fabric equivalent.
+- The structure block render distance mixin and the Fabric rail rotation fix.
+- `OpenSimplex2F`, `EnumResourcefulRegistryChild` and the `GeneralUtils` helpers.
+
+### Villager trades on 26.x
+
+Vanilla villager and wandering trader trades are data-driven on 26.x (`villager_trade` and `trade_set` registries). There is no NeoForge `VillagerTradesEvent` or Fabric `TradeOfferHelper`, so Integrated API adds its trades through a mixin on `AbstractVillager#addOffersFromTradeSet`:
+
+- A `villagerMaps` entry with `tradeLevel` N joins the candidate pool of that profession's level N trade set. The trade set's `amount` decides how many offers the villager receives, as with vanilla trades.
+- `wanderingTraderMap.common` entries join `minecraft:wandering_trader/common`, and `wanderingTraderMap.rare` entries join `minecraft:wandering_trader/uncommon`.
+- Map trades are rebuilt on every datapack reload, and entries for the same profession from several files are merged.
+- Legacy upper-case `mapIcon` values such as `BANNER_YELLOW` or `MANSION` are read as `minecraft:banner_yellow` / `minecraft:mansion`.
+- Mods can still add trades through `RegisterVillagerTradesEvent` and `RegisterWanderingTradesEvent`. Listings implement `com.craisinlord.integrated_api.misc.maptrades.ItemListing`, which replaces the removed vanilla `VillagerTrades.ItemListing`.
+
+### Structure NBT updater (NeoForge)
+
+The NeoForge 26.3 module has a `data` run that runs the structure NBT updater. It reads `common-26.3/src/main/resources` and writes updated structure files to `common-26.3/src/main/generated/resources`:
+
+```
+cd group-d
+./gradlew :neoforge-26.3:runData
+```
+_

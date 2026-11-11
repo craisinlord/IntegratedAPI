@@ -87,12 +87,16 @@ tasks.named('jar') {
 
 def groupBDir = file('group-b')
 def groupCDir = file('group-c')
+def groupDDir = file('group-d')
 def groupBWrapper = providers.systemProperty('os.name').get().toLowerCase().contains('win')
         ? new File(groupBDir, 'gradlew.bat')
         : new File(groupBDir, 'gradlew')
 def groupCWrapper = providers.systemProperty('os.name').get().toLowerCase().contains('win')
         ? new File(groupCDir, 'gradlew.bat')
         : new File(groupCDir, 'gradlew')
+def groupDWrapper = providers.systemProperty('os.name').get().toLowerCase().contains('win')
+        ? new File(groupDDir, 'gradlew.bat')
+        : new File(groupDDir, 'gradlew')
 
 def registerExternalTask = { String taskName, String taskGroup, String description, File workingDir, File wrapper, String... arguments ->
     tasks.register(taskName, Exec) {
@@ -106,18 +110,19 @@ def registerExternalTask = { String taskName, String taskGroup, String descripti
 ['build', 'assemble', 'clean', 'runClient', 'runServer'].each { name ->
     registerExternalTask("groupB${name.capitalize()}", 'group-b', "Runs ':${name}' inside the group-b build", groupBDir, groupBWrapper, name)
     registerExternalTask("groupC${name.capitalize()}", 'group-c', "Runs ':${name}' inside the group-c build", groupCDir, groupCWrapper, name)
+    registerExternalTask("groupD${name.capitalize()}", 'group-d', "Runs ':${name}' inside the group-d build", groupDDir, groupDWrapper, name)
 }
 
 tasks.named('build') {
-    dependsOn 'groupBBuild', 'groupCBuild'
+    dependsOn 'groupBBuild', 'groupCBuild', 'groupDBuild'
 }
 
 tasks.named('assemble') {
-    dependsOn 'groupBAssemble', 'groupCAssemble'
+    dependsOn 'groupBAssemble', 'groupCAssemble', 'groupDAssemble'
 }
 
 tasks.named('clean') {
-    dependsOn 'groupBClean', 'groupCClean'
+    dependsOn 'groupBClean', 'groupCClean', 'groupDClean'
 }
 
 tasks.register('build261') {
@@ -156,6 +161,24 @@ tasks.register('clean262') {
     dependsOn 'groupCClean'
 }
 
+tasks.register('build263') {
+    group = 'group-d'
+    description = 'Builds the 26.3 Fabric and NeoForge artifacts'
+    dependsOn 'groupDBuild'
+}
+
+tasks.register('assemble263') {
+    group = 'group-d'
+    description = 'Assembles the 26.3 Fabric and NeoForge artifacts'
+    dependsOn 'groupDAssemble'
+}
+
+tasks.register('clean263') {
+    group = 'group-d'
+    description = 'Cleans the 26.3 build outputs'
+    dependsOn 'groupDClean'
+}
+
 registerExternalTask('runFabric261Client', 'group-b', 'Runs Fabric 26.1 client inside the group-b build', groupBDir, groupBWrapper, ':fabric-26.1:runClient')
 registerExternalTask('runFabric261Server', 'group-b', 'Runs Fabric 26.1 server inside the group-b build', groupBDir, groupBWrapper, ':fabric-26.1:runServer')
 registerExternalTask('runNeoForge261Client', 'group-b', 'Runs NeoForge 26.1 client inside the group-b build', groupBDir, groupBWrapper, ':neoforge-26.1:runClient')
@@ -165,3 +188,8 @@ registerExternalTask('runFabric262Client', 'group-c', 'Runs Fabric 26.2 client i
 registerExternalTask('runFabric262Server', 'group-c', 'Runs Fabric 26.2 server inside the group-c build', groupCDir, groupCWrapper, ':fabric-26.2:runServer')
 registerExternalTask('runNeoForge262Client', 'group-c', 'Runs NeoForge 26.2 client inside the group-c build', groupCDir, groupCWrapper, ':neoforge-26.2:runClient')
 registerExternalTask('runNeoForge262Server', 'group-c', 'Runs NeoForge 26.2 server inside the group-c build', groupCDir, groupCWrapper, ':neoforge-26.2:runServer')
+
+registerExternalTask('runFabric263Client', 'group-d', 'Runs Fabric 26.3 client inside the group-d build', groupDDir, groupDWrapper, ':fabric-26.3:runClient')
+registerExternalTask('runFabric263Server', 'group-d', 'Runs Fabric 26.3 server inside the group-d build', groupDDir, groupDWrapper, ':fabric-26.3:runServer')
+registerExternalTask('runNeoForge263Client', 'group-d', 'Runs NeoForge 26.3 client inside the group-d build', groupDDir, groupDWrapper, ':neoforge-26.3:runClient')
+registerExternalTask('runNeoForge263Server', 'group-d', 'Runs NeoForge 26.3 server inside the group-d build', groupDDir, groupDWrapper, ':neoforge-26.3:runServer')

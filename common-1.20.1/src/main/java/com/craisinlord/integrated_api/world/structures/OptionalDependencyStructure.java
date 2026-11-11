@@ -4,7 +4,7 @@ import com.craisinlord.integrated_api.IntegratedAPI;
 import com.craisinlord.integrated_api.modinit.IAStructures;
 import com.craisinlord.integrated_api.utils.PlatformHooks;
 import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptation;
-import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptationType;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
@@ -41,7 +41,7 @@ public class   OptionalDependencyStructure extends JigsawStructure {
             Codec.STRING.optionalFieldOf("required_mods").forGetter(structure -> structure.requiredMod),
             Codec.STRING.optionalFieldOf("illegal_mods").forGetter(structure -> structure.illegalMod),
             Codec.BOOL.fieldOf("rotation_fixed").orElse(false).forGetter(structure -> structure.rotationFixed),
-            EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE).forGetter(structure -> structure.enhancedTerrainAdaptation)
+            JigsawStructure.TERRAIN_ADAPTATION_CODEC.forGetter(structure -> Pair.of(structure.enhancedTerrainAdaptation, structure.overridePieceTerrainAdaptation))
     ).apply(instance, OptionalDependencyStructure::new));
 
     public final Optional<String> requiredMod;
@@ -62,7 +62,8 @@ public class   OptionalDependencyStructure extends JigsawStructure {
                                  Optional<String> requiredMod,
                                  Optional<String> illegalMod,
                                  boolean rotationFixed,
-                                 EnhancedTerrainAdaptation enhancedTerrainAdaptation) {
+                                 EnhancedTerrainAdaptation enhancedTerrainAdaptation,
+                                 boolean overridePieceTerrainAdaptation) {
         super(config,
                 startPool,
                 size,
@@ -78,9 +79,45 @@ public class   OptionalDependencyStructure extends JigsawStructure {
                 maxDistanceFromCenter,
                 Optional.empty(),
                 rotationFixed,
-                enhancedTerrainAdaptation);
+                enhancedTerrainAdaptation,
+                overridePieceTerrainAdaptation);
         this.requiredMod = requiredMod;
         this.illegalMod = illegalMod;
+    }
+
+    private OptionalDependencyStructure(StructureSettings config,
+                                        Holder<StructureTemplatePool> startPool,
+                                        int size,
+                                        Optional<Integer> minYAllowed,
+                                        Optional<Integer> maxYAllowed,
+                                        HeightProvider startHeight,
+                                        Optional<Heightmap.Types> projectStartToHeightmap,
+                                        boolean cannotSpawnInLiquid,
+                                        Optional<Integer> terrainHeightCheckRadius,
+                                        Optional<Integer> allowedTerrainHeightRange,
+                                        Optional<Integer> biomeRadius,
+                                        Optional<Integer> maxDistanceFromCenter,
+                                        Optional<String> requiredMod,
+                                        Optional<String> illegalMod,
+                                        boolean rotationFixed,
+                                        Pair<EnhancedTerrainAdaptation, Boolean> terrainAdaptation) {
+        this(config,
+                startPool,
+                size,
+                minYAllowed,
+                maxYAllowed,
+                startHeight,
+                projectStartToHeightmap,
+                cannotSpawnInLiquid,
+                terrainHeightCheckRadius,
+                allowedTerrainHeightRange,
+                biomeRadius,
+                maxDistanceFromCenter,
+                requiredMod,
+                illegalMod,
+                rotationFixed,
+                terrainAdaptation.getFirst(),
+                terrainAdaptation.getSecond());
     }
 
     private ArrayList<String> convertModList(String modlist) {

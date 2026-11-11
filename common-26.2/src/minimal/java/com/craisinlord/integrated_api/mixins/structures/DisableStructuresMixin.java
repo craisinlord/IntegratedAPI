@@ -3,7 +3,9 @@ package com.craisinlord.integrated_api.mixins.structures;
 import com.craisinlord.integrated_api.modinit.IATags;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
@@ -28,6 +30,7 @@ public class DisableStructuresMixin {
             ChunkAccess chunkAccess,
             ChunkPos chunkPos,
             SectionPos sectionPos,
+            ResourceKey<Level> level,
             CallbackInfoReturnable<Boolean> cir
     ) {
         if (structureSetEntry.structure().is(IATags.DISABLED_STRUCTURES)) {

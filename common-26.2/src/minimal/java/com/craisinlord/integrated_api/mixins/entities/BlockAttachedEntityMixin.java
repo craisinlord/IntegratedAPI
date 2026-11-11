@@ -11,9 +11,8 @@ import org.spongepowered.asm.mixin.injection.At;
 public class BlockAttachedEntityMixin {
 
     // Silence logspam that isn't an issue by lowering it from error to debug: https://bugs.mojang.com/browse/MC-252934
-    @WrapOperation(method = "readAdditionalSaveData(Lnet/minecraft/nbt/CompoundTag;)V",
-            at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;error(Ljava/lang/String;Ljava/lang/Object;)V", remap = false),
-            require = 0)
+    @WrapOperation(method = "readAdditionalSaveData(Lnet/minecraft/world/level/storage/ValueInput;)V",
+            at = @At(value = "INVOKE", target = "Lorg/slf4j/Logger;error(Ljava/lang/String;Ljava/lang/Object;)V", remap = false))
     private void repurposedstructures_lowerLoggingLevel(Logger instance, String s, Object o, Operation<Void> original) {
         instance.debug(s, o);
     }

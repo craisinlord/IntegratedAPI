@@ -42,7 +42,7 @@ public class PostProcessListProcessor implements StructureProcessor {
                                 serverLevelAccessor,
                                 nbtOriginPos,
                                 chunkCenter,
-                                structureBlockInfoResult.pos(),
+                                structureBlockInfoOriginalNbtOrigin.pos(),
                                 structureBlockInfoResult,
                                 structurePlaceSettings);
 

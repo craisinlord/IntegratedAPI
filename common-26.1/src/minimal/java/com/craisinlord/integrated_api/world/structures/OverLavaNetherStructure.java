@@ -36,11 +36,12 @@ public class OverLavaNetherStructure extends JigsawStructure {
             StringRepresentable.fromEnum(BURYING_TYPE::values).optionalFieldOf("burying_type").forGetter(structure -> structure.buryingType),
             Codec.BOOL.fieldOf("rotation_fixed").orElse(false).forGetter(structure -> structure.rotationFixed),
             EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE).forGetter(structure -> structure.enhancedTerrainAdaptation),
+            Codec.BOOL.optionalFieldOf("override_piece_terrain_adaptation", false).forGetter(structure -> structure.overridePieceTerrainAdaptation),
             LiquidSettings.CODEC.optionalFieldOf("liquid_settings", net.minecraft.world.level.levelgen.structure.structures.JigsawStructure.DEFAULT_LIQUID_SETTINGS).forGetter(structure -> structure.liquidSettings)
     ).apply(instance, OverLavaNetherStructure::new));
 
-    public OverLavaNetherStructure(StructureSettings config, Holder<StructureTemplatePool> startPool, int size, Optional<YRangeAllowance> yAllowance, HeightProvider startHeight, Optional<Heightmap.Types> projectStartToHeightmap, boolean cannotSpawnInLiquid, Optional<Integer> terrainHeightCheckRadius, Optional<Integer> allowedTerrainHeightRange, Optional<Integer> biomeRadius, Optional<Integer> maxDistanceFromCenter, Optional<BURYING_TYPE> buryingType, boolean rotationFixed, EnhancedTerrainAdaptation enhancedTerrainAdaptation, LiquidSettings liquidSettings) {
-        super(config, startPool, size, yAllowance, startHeight, projectStartToHeightmap, cannotSpawnInLiquid, terrainHeightCheckRadius, allowedTerrainHeightRange, biomeRadius, maxDistanceFromCenter, buryingType, rotationFixed, enhancedTerrainAdaptation, liquidSettings);
+    public OverLavaNetherStructure(StructureSettings config, Holder<StructureTemplatePool> startPool, int size, Optional<YRangeAllowance> yAllowance, HeightProvider startHeight, Optional<Heightmap.Types> projectStartToHeightmap, boolean cannotSpawnInLiquid, Optional<Integer> terrainHeightCheckRadius, Optional<Integer> allowedTerrainHeightRange, Optional<Integer> biomeRadius, Optional<Integer> maxDistanceFromCenter, Optional<BURYING_TYPE> buryingType, boolean rotationFixed, EnhancedTerrainAdaptation enhancedTerrainAdaptation, boolean overridePieceTerrainAdaptation, LiquidSettings liquidSettings) {
+        super(config, startPool, size, yAllowance, startHeight, projectStartToHeightmap, cannotSpawnInLiquid, terrainHeightCheckRadius, allowedTerrainHeightRange, biomeRadius, maxDistanceFromCenter, buryingType, rotationFixed, enhancedTerrainAdaptation, overridePieceTerrainAdaptation, liquidSettings);
     }
 
     @Override

@@ -4,7 +4,7 @@ import com.craisinlord.integrated_api.IntegratedAPI;
 import com.craisinlord.integrated_api.modinit.IAStructures;
 import com.craisinlord.integrated_api.world.structures.pieces.manager.PieceLimitedJigsawManager;
 import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptation;
-import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptationType;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.*;
@@ -42,7 +42,7 @@ public class BiomeFacingStructure extends JigsawStructure {
             Codec.intRange(1, 1000).optionalFieldOf("allowed_terrain_height_range").forGetter(structure -> structure.allowedTerrainHeightRange),
             Codec.intRange(1, 100).optionalFieldOf("valid_biome_radius_check").forGetter(structure -> structure.biomeRadius),
             Codec.intRange(1, IntegratedAPI.NEW_STRUCTURE_SIZE).optionalFieldOf("max_distance_from_center").forGetter(structure -> structure.maxDistanceFromCenter),
-            EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE).forGetter(structure -> structure.enhancedTerrainAdaptation),
+            JigsawStructure.TERRAIN_ADAPTATION_CODEC.forGetter(structure -> Pair.of(structure.enhancedTerrainAdaptation, structure.overridePieceTerrainAdaptation)),
             Codec.intRange(1, 100).fieldOf("target_biome_radius_check_blocks").orElse(24).forGetter(structure -> structure.targetBiomeRadius),
             RegistryCodecs.homogeneousList(Registries.BIOME).fieldOf("target_biomes").forGetter(structure -> structure.targetBiomes)
     ).apply(instance, BiomeFacingStructure::new));
@@ -64,6 +64,7 @@ public class BiomeFacingStructure extends JigsawStructure {
                                 Optional<Integer> biomeRadius,
                                 Optional<Integer> maxDistanceFromCenter,
                                 EnhancedTerrainAdaptation enhancedTerrainAdaptation,
+                                boolean overridePieceTerrainAdaptation,
                                 int targetBiomeRadius,
                                 HolderSet<Biome> targetBiomes)
     {
@@ -82,9 +83,45 @@ public class BiomeFacingStructure extends JigsawStructure {
                 maxDistanceFromCenter,
                 Optional.empty(),
                 false,
-                enhancedTerrainAdaptation);
+                enhancedTerrainAdaptation,
+                overridePieceTerrainAdaptation);
         this.targetBiomeRadius = targetBiomeRadius;
         this.targetBiomes = targetBiomes;
+    }
+
+    private BiomeFacingStructure(StructureSettings config,
+                                 Holder<StructureTemplatePool> startPool,
+                                 int size,
+                                 Optional<Integer> minYAllowed,
+                                 Optional<Integer> maxYAllowed,
+                                 Optional<Integer> allowedYRangeFromStart,
+                                 HeightProvider startHeight,
+                                 Optional<Heightmap.Types> projectStartToHeightmap,
+                                 boolean cannotSpawnInLiquid,
+                                 Optional<Integer> terrainHeightCheckRadius,
+                                 Optional<Integer> allowedTerrainHeightRange,
+                                 Optional<Integer> biomeRadius,
+                                 Optional<Integer> maxDistanceFromCenter,
+                                 Pair<EnhancedTerrainAdaptation, Boolean> terrainAdaptation,
+                                 int targetBiomeRadius,
+                                 HolderSet<Biome> targetBiomes) {
+        this(config,
+                startPool,
+                size,
+                minYAllowed,
+                maxYAllowed,
+                allowedYRangeFromStart,
+                startHeight,
+                projectStartToHeightmap,
+                cannotSpawnInLiquid,
+                terrainHeightCheckRadius,
+                allowedTerrainHeightRange,
+                biomeRadius,
+                maxDistanceFromCenter,
+                terrainAdaptation.getFirst(),
+                terrainAdaptation.getSecond(),
+                targetBiomeRadius,
+                targetBiomes);
     }
 
     private String rotationToBiome(BlockPos blockpos, Structure.GenerationContext context) {
@@ -229,7 +266,6 @@ public class BiomeFacingStructure extends JigsawStructure {
                 return "CLOCKWISE_180";
             }
         }
-        IntegratedAPI.LOGGER.info("EVIL DETECTED YOU WILL BE EXTERMINATED");
         return "NONE";
     }
 

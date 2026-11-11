@@ -42,6 +42,7 @@ public class OverLavaNetherStructure extends JigsawStructure {
             StringRepresentable.fromEnum(BURYING_TYPE::values).optionalFieldOf("burying_type").forGetter(structure -> structure.buryingType),
             Codec.BOOL.fieldOf("rotation_fixed").orElse(false).forGetter(structure -> structure.rotationFixed),
             EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE).forGetter(structure -> structure.enhancedTerrainAdaptation),
+            Codec.BOOL.optionalFieldOf("override_piece_terrain_adaptation", false).forGetter(structure -> structure.overridePieceTerrainAdaptation),
             LiquidSettings.CODEC.optionalFieldOf("liquid_settings", net.minecraft.world.level.levelgen.structure.structures.JigsawStructure.DEFAULT_LIQUID_SETTINGS).forGetter(structure -> structure.liquidSettings)
     ).apply(instance, OverLavaNetherStructure::new));
 
@@ -59,6 +60,7 @@ public class OverLavaNetherStructure extends JigsawStructure {
                                    Optional<BURYING_TYPE> buryingType,
                                    boolean rotationFixed,
                                    EnhancedTerrainAdaptation enhancedTerrainAdaptation,
+                                   boolean overridePieceTerrainAdaptation,
                                    LiquidSettings liquidSettings)
     {
         super(config,
@@ -75,6 +77,7 @@ public class OverLavaNetherStructure extends JigsawStructure {
                 buryingType,
                 rotationFixed,
                 enhancedTerrainAdaptation,
+                overridePieceTerrainAdaptation,
                 liquidSettings);
     }
 

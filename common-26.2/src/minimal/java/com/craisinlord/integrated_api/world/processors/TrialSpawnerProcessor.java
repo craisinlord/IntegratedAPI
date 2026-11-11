@@ -9,7 +9,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.InclusiveRange;
 import net.minecraft.util.RandomSource;
@@ -18,6 +21,7 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SpawnerBlock;
 import net.minecraft.world.level.block.TrialSpawnerBlock;
+import net.minecraft.world.level.block.entity.trialspawner.TrialSpawnerConfig;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessor;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
@@ -49,19 +53,32 @@ public final class TrialSpawnerProcessor implements StructureProcessor {
         if (!trial && !(replaceVanillaSpawners && worldInfo.state().getBlock() instanceof SpawnerBlock)) return worldInfo;
         CompoundTag tag = worldInfo.nbt() == null ? new CompoundTag() : worldInfo.nbt().copy();
         RandomSource random = settings.getRandom(worldInfo.pos());
-        apply(tag, "normal_config", normalConfig, lootTable, random); apply(tag, "ominous_config", ominousConfig, ominousLootTable.orElse(lootTable), random);
+        RegistryOps<Tag> ops = level.registryAccess().createSerializationContext(NbtOps.INSTANCE);
+        apply(tag, "normal_config", normalConfig, lootTable, random, ops); apply(tag, "ominous_config", ominousConfig, ominousLootTable.orElse(lootTable), random, ops);
         targetCooldownLength.ifPresent(v -> tag.putInt("target_cooldown_length", v)); requiredPlayerRange.ifPresent(v -> tag.putInt("required_player_range", v));
         return new StructureTemplate.StructureBlockInfo(worldInfo.pos(), trial ? worldInfo.state() : Blocks.TRIAL_SPAWNER.defaultBlockState(), tag);
     }
 
-    private void apply(CompoundTag root, String name, Optional<CompoundTag> override, Identifier table, RandomSource random) {
-        CompoundTag config = root.getCompound(name).orElse(new CompoundTag());
+    private static CompoundTag resolveConfig(CompoundTag root, String name, RegistryOps<Tag> ops) {
+        Tag existing = root.get(name);
+        if (existing == null) {
+            return new CompoundTag();
+        }
+        return TrialSpawnerConfig.CODEC.parse(ops, existing).result()
+                .flatMap(holder -> TrialSpawnerConfig.DIRECT_CODEC.encodeStart(ops, holder.value()).result())
+                .filter(CompoundTag.class::isInstance)
+                .map(CompoundTag.class::cast)
+                .orElseGet(() -> root.getCompound(name).orElse(new CompoundTag()));
+    }
+
+    private void apply(CompoundTag root, String name, Optional<CompoundTag> override, Identifier table, RandomSource random, RegistryOps<Tag> ops) {
+        CompoundTag config = resolveConfig(root, name, ops);
         override.ifPresent(config::merge);
         ListTag tables = new ListTag(); CompoundTag entry = new CompoundTag(); entry.put("data", StringTag.valueOf(table.toString())); entry.putInt("weight", 1); tables.add(entry); config.put("loot_tables_to_eject", tables);
         EntityType<?> entity = MobSpawnerManager.MOB_SPAWNER_MANAGER.getSpawnerMob(spawnerIdentifier, random);
         if (entity != null) {
             CompoundTag entityData = new CompoundTag(); entityData.putString("id", BuiltInRegistries.ENTITY_TYPE.getKey(entity).toString()); CompoundTag spawnData = new CompoundTag(); spawnData.put("entity", entityData);
-            if (validBlockLightLevel.isPresent() || validSkyLightLevel.isPresent()) { CompoundTag rules = new CompoundTag(); validBlockLightLevel.ifPresent(r -> { CompoundTag v = new CompoundTag(); v.putInt("min_inclusive", r.minInclusive()); v.putInt("max_inclusive", r.maxInclusive()); rules.put("block_light_limit", v); }); validSkyLightLevel.ifPresent(r -> { CompoundTag v = new CompoundTag(); v.putInt("min_inclusive", r.minInclusive()); v.putInt("max_exclusive", r.maxInclusive()); rules.put("sky_light_limit", v); }); spawnData.put("custom_spawn_rules", rules); }
+            if (validBlockLightLevel.isPresent() || validSkyLightLevel.isPresent()) { CompoundTag rules = new CompoundTag(); validBlockLightLevel.ifPresent(r -> { CompoundTag v = new CompoundTag(); v.putInt("min_inclusive", r.minInclusive()); v.putInt("max_inclusive", r.maxInclusive()); rules.put("block_light_limit", v); }); validSkyLightLevel.ifPresent(r -> { CompoundTag v = new CompoundTag(); v.putInt("min_inclusive", r.minInclusive()); v.putInt("max_inclusive", r.maxInclusive()); rules.put("sky_light_limit", v); }); spawnData.put("custom_spawn_rules", rules); }
             ListTag potentials = new ListTag(); CompoundTag potential = new CompoundTag(); potential.put("data", spawnData); potential.putInt("weight", 1); potentials.add(potential); config.put("spawn_potentials", potentials);
         }
         root.put(name, config);

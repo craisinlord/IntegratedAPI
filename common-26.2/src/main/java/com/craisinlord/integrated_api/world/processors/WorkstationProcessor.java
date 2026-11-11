@@ -124,7 +124,7 @@ public class WorkstationProcessor extends StructureProcessor {
         if (!LOGGED_MISSING_TYPES.add(key)) {
             return;
         }
-        IntegratedAPI.LOGGER.error("(Integrated API Workstation Processor) Missing workstation data for type '{}' at data/{}/workstations/{}.json",
+        IntegratedAPI.LOGGER.error("(Integrated API Workstation Processor) Missing workstation data for type '{}' at data/{}/integrated_workstations/{}.json",
                 workstationTypeId.getPath(),
                 workstationTypeId.getNamespace(),
                 workstationTypeId.getPath());

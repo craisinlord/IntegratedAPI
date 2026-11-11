@@ -1,5 +1,9 @@
 package com.craisinlord.integrated_api.utils;
 
+import com.craisinlord.integrated_api.IntegratedAPI;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
 import com.mojang.datafixers.util.Pair;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import java.util.List;
@@ -8,7 +12,35 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import com.craisinlord.integrated_api.mixins.structures.JigsawJunctionAccessor;
@@ -65,6 +97,144 @@ public final class GeneralUtils {
             return false;
         }
         return IS_FULLCUBE_MAP.computeIfAbsent(state, stateIn -> Block.isShapeFullBlock(stateIn.getOcclusionShape()));
+    }
+
+    public static BlockState orientateChest(ServerLevelAccessor blockView, BlockPos blockPos, BlockState blockState) {
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+        Direction wallDirection = blockState.getValue(HorizontalDirectionalBlock.FACING);
+
+        for (Direction facing : Direction.Plane.HORIZONTAL) {
+            mutable.set(blockPos).move(facing);
+
+            if (isFullCube(blockView, mutable, blockView.getBlockState(mutable))) {
+                wallDirection = facing;
+
+                mutable.move(facing.getOpposite(), 2);
+                if (!blockView.getBlockState(mutable).isSolid()) {
+                    break;
+                }
+            }
+        }
+
+        return blockState.setValue(HorizontalDirectionalBlock.FACING, wallDirection.getOpposite());
+    }
+
+    public static ItemStack enchantRandomly(RegistryAccess registryAccess, RandomSource random, ItemStack itemToEnchant, float chance) {
+        if (random.nextFloat() < chance) {
+            List<Holder.Reference<Enchantment>> list = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).listElements()
+                    .filter(holder -> holder.value().canEnchant(itemToEnchant)).toList();
+            if (!list.isEmpty()) {
+                Holder.Reference<Enchantment> enchantment = list.get(random.nextInt(list.size()));
+                int enchantmentLevel = random.nextInt(Mth.nextInt(random, enchantment.value().getMinLevel(), enchantment.value().getMaxLevel()) + 1);
+                itemToEnchant.enchant(enchantment, enchantmentLevel);
+            }
+        }
+
+        return itemToEnchant;
+    }
+
+    public static int getFirstLandYFromPos(LevelReader worldView, BlockPos pos) {
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
+        mutable.set(pos);
+        ChunkAccess currentChunk = worldView.getChunk(mutable);
+        BlockState currentState = currentChunk.getBlockState(mutable);
+
+        while (mutable.getY() >= worldView.getMinY() && isReplaceableByStructures(currentState)) {
+            mutable.move(Direction.DOWN);
+            currentState = currentChunk.getBlockState(mutable);
+        }
+
+        return mutable.getY();
+    }
+
+    private static boolean isReplaceableByStructures(BlockState blockState) {
+        return blockState.isAir() || !blockState.getFluidState().isEmpty() || blockState.is(BlockTags.REPLACEABLE_BY_TREES);
+    }
+
+    public static String getStringMicroOptimised(CompoundTag tag, String key) {
+        return tag.get(key) instanceof StringTag(String value) ? value : "";
+    }
+
+    public static Map<Identifier, JsonElement> getDatapacksJSONElement(ResourceManager resourceManager, Gson gson, String dataType, int fileSuffixLength) {
+        Map<Identifier, JsonElement> map = new HashMap<>();
+        int dataTypeLength = dataType.length() + 1;
+
+        for (Map.Entry<Identifier, Resource> resourceStackEntry : resourceManager.listResources(dataType, (fileString) -> true).entrySet()) {
+            String identifierPath = resourceStackEntry.getKey().getPath();
+            Identifier fileID = Identifier.fromNamespaceAndPath(
+                    resourceStackEntry.getKey().getNamespace(),
+                    identifierPath.substring(dataTypeLength, identifierPath.length() - fileSuffixLength));
+
+            try {
+                InputStream fileStream = resourceStackEntry.getValue().open();
+                try (Reader bufferedReader = new BufferedReader(new InputStreamReader(fileStream, StandardCharsets.UTF_8))) {
+                    JsonElement countsJSONElement = GsonHelper.fromJson(gson, bufferedReader, JsonElement.class);
+                    map.put(fileID, countsJSONElement);
+                }
+            }
+            catch (IllegalArgumentException | IOException | JsonParseException exception) {
+                IntegratedAPI.LOGGER.error(
+                        "(Repurposed Structures {} MERGER) Couldn't parse data file {} from {}",
+                        dataType,
+                        fileID,
+                        resourceStackEntry,
+                        exception);
+            }
+        }
+
+        return map;
+    }
+
+    public static boolean isInvalidLootTableFound(MinecraftServer minecraftServer, Map.Entry<Identifier, Identifier> entry) {
+        boolean invalidLootTableFound = false;
+        if (minecraftServer.reloadableRegistries().getLootTable(ResourceKey.create(Registries.LOOT_TABLE, entry.getKey())) == LootTable.EMPTY) {
+            IntegratedAPI.LOGGER.error("Unable to find loot table key: {}", entry.getKey());
+            invalidLootTableFound = true;
+        }
+        if (minecraftServer.reloadableRegistries().getLootTable(ResourceKey.create(Registries.LOOT_TABLE, entry.getValue())) == LootTable.EMPTY) {
+            IntegratedAPI.LOGGER.error("Unable to find loot table value: {}", entry.getValue());
+            invalidLootTableFound = true;
+        }
+        return invalidLootTableFound;
+    }
+
+    public static boolean isMissingLootImporting(MinecraftServer minecraftServer, Set<Identifier> tableKeys) {
+        AtomicBoolean invalidLootTableFound = new AtomicBoolean(false);
+        minecraftServer.reloadableRegistries().lookup().lookupOrThrow(Registries.LOOT_TABLE).listElementIds().map(ResourceKey::identifier).forEach(rl -> {
+            if (rl.getNamespace().equals(IntegratedAPI.MODID) && !tableKeys.contains(rl)) {
+                if (rl.getPath().contains("mansions") && rl.getPath().contains("storage")) {
+                    return;
+                }
+
+                if (rl.getPath().contains("monuments")) {
+                    return;
+                }
+
+                if (rl.getPath().contains("dispensers/temples/wasteland_lava")) {
+                    return;
+                }
+
+                if (rl.getPath().contains("lucky_pool")) {
+                    return;
+                }
+
+                if (rl.getPath().contains("archaeology")) {
+                    return;
+                }
+
+                IntegratedAPI.LOGGER.error("No loot importing found for: {}", rl);
+                invalidLootTableFound.set(true);
+            }
+        });
+        return invalidLootTableFound.get();
+    }
+
+    public static boolean nameMatch(String biomeName, String... targetMatch) {
+        return Arrays.stream(targetMatch).anyMatch(biomeName::contains);
+    }
+
+    public static boolean nameExactMatch(String biomeName, String... targetMatch) {
+        return Arrays.asList(targetMatch).contains(biomeName);
     }
 
     public static BlockState copyBlockProperties(BlockState oldBlockState, BlockState newBlockState) {

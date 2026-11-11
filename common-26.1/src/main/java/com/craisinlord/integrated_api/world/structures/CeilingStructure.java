@@ -44,6 +44,7 @@ public class CeilingStructure extends JigsawStructure {
             Codec.intRange(1, IntegratedAPI.NEW_STRUCTURE_SIZE).optionalFieldOf("max_distance_from_center").forGetter(structure -> structure.maxDistanceFromCenter),
             Codec.BOOL.fieldOf("rotation_fixed").orElse(false).forGetter(structure -> structure.rotationFixed),
             EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE).forGetter(structure -> structure.enhancedTerrainAdaptation),
+            Codec.BOOL.optionalFieldOf("override_piece_terrain_adaptation", false).forGetter(structure -> structure.overridePieceTerrainAdaptation),
             LiquidSettings.CODEC.optionalFieldOf("liquid_settings", net.minecraft.world.level.levelgen.structure.structures.JigsawStructure.DEFAULT_LIQUID_SETTINGS).forGetter(structure -> structure.liquidSettings),
             Codec.intRange(1, 512).fieldOf("max_roof_search_distance").forGetter(structure -> structure.maxRoofSearchDistance),
             Codec.intRange(1, 64).fieldOf("min_roof_thickness").forGetter(structure -> structure.minRoofThickness),
@@ -66,6 +67,7 @@ public class CeilingStructure extends JigsawStructure {
                             Optional<Integer> maxDistanceFromCenter,
                             boolean rotationFixed,
                             EnhancedTerrainAdaptation enhancedTerrainAdaptation,
+                            boolean overridePieceTerrainAdaptation,
                             LiquidSettings liquidSettings,
                             int maxRoofSearchDistance,
                             int minRoofThickness,
@@ -86,6 +88,7 @@ public class CeilingStructure extends JigsawStructure {
                 Optional.empty(),
                 rotationFixed,
                 enhancedTerrainAdaptation,
+                overridePieceTerrainAdaptation,
                 liquidSettings
         );
         this.maxRoofSearchDistance = maxRoofSearchDistance;

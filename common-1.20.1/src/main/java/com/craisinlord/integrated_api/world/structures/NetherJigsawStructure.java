@@ -42,7 +42,8 @@ public class NetherJigsawStructure extends JigsawStructure {
             Codec.intRange(0, 100).optionalFieldOf("ledge_offset_y").forGetter(structure -> structure.ledgeOffsetY),
             StringRepresentable.fromEnum(LAND_SEARCH_DIRECTION::values).fieldOf("land_search_direction").forGetter(structure -> structure.searchDirection),
             Codec.BOOL.fieldOf("rotation_fixed").orElse(false).forGetter(structure -> structure.rotationFixed),
-            EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE).forGetter(structure -> structure.enhancedTerrainAdaptation)
+            EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE).forGetter(structure -> structure.enhancedTerrainAdaptation),
+            Codec.BOOL.optionalFieldOf("override_piece_terrain_adaptation", false).forGetter(structure -> structure.overridePieceTerrainAdaptation)
     ).apply(instance, NetherJigsawStructure::new));
 
     public final Optional<Integer> ledgeOffsetY;
@@ -61,7 +62,8 @@ public class NetherJigsawStructure extends JigsawStructure {
                                  Optional<Integer> ledgeOffsetY,
                                  LAND_SEARCH_DIRECTION searchDirection,
                                  boolean rotationFixed,
-                                 EnhancedTerrainAdaptation enhancedTerrainAdaptation) {
+                                 EnhancedTerrainAdaptation enhancedTerrainAdaptation,
+                                 boolean overridePieceTerrainAdaptation) {
         super(config,
                 startPool,
                 size,
@@ -77,7 +79,8 @@ public class NetherJigsawStructure extends JigsawStructure {
                 maxDistanceFromCenter,
                 Optional.empty(),
                 rotationFixed,
-                enhancedTerrainAdaptation);
+                enhancedTerrainAdaptation,
+                overridePieceTerrainAdaptation);
 
         this.ledgeOffsetY = ledgeOffsetY;
         this.searchDirection = searchDirection;

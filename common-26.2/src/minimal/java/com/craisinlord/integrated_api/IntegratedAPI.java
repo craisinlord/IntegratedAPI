@@ -1,10 +1,15 @@
 package com.craisinlord.integrated_api;
 
+import com.craisinlord.integrated_api.events.RegisterVillagerTradesEvent;
+import com.craisinlord.integrated_api.events.RegisterWanderingTradesEvent;
 import com.craisinlord.integrated_api.events.lifecycle.RegisterReloadListenerEvent;
 import com.craisinlord.integrated_api.events.lifecycle.ServerGoingToStartEvent;
 import com.craisinlord.integrated_api.events.lifecycle.ServerGoingToStopEvent;
 import com.craisinlord.integrated_api.events.lifecycle.SetupEvent;
+import com.craisinlord.integrated_api.misc.maptrades.StructureMapManager;
+import com.craisinlord.integrated_api.misc.maptrades.StructureMapTradesEvents;
 import com.craisinlord.integrated_api.misc.mobspawners.MobSpawnerManager;
+import com.craisinlord.integrated_api.misc.trades.MerchantTrades;
 import com.craisinlord.integrated_api.misc.structurepiececounter.StructurePieceCountsManager;
 import com.craisinlord.integrated_api.misc.workstations.WorkstationManager;
 import com.craisinlord.integrated_api.modinit.IAConditionsRegistry;
@@ -58,6 +63,8 @@ public final class IntegratedAPI {
         RegisterReloadListenerEvent.EVENT.addListener(IntegratedAPI::registerDatapackListener);
         ServerGoingToStartEvent.EVENT.addListener(IntegratedAPI::serverAboutToStart);
         ServerGoingToStopEvent.EVENT.addListener(IntegratedAPI::onServerStopping);
+        RegisterVillagerTradesEvent.EVENT.addListener(IntegratedAPI::onAddVillagerTrades);
+        RegisterWanderingTradesEvent.EVENT.addListener(IntegratedAPI::onWanderingTrades);
         LOGGER.info("Initialized Integrated API 26.2 bootstrap");
     }
 
@@ -67,6 +74,7 @@ public final class IntegratedAPI {
     private static void serverAboutToStart(ServerGoingToStartEvent event) {
         ServerLifecycleHooks.setCurrentServer(event.server());
         AsyncLocator.handleServerAboutToStartEvent();
+        MerchantTrades.invalidate();
     }
 
     private static void onServerStopping(ServerGoingToStopEvent event) {
@@ -74,8 +82,17 @@ public final class IntegratedAPI {
         AsyncLocator.handleServerStoppingEvent();
     }
 
+    private static void onAddVillagerTrades(RegisterVillagerTradesEvent event) {
+        StructureMapTradesEvents.addVillagerTrades(event);
+    }
+
+    private static void onWanderingTrades(RegisterWanderingTradesEvent event) {
+        StructureMapTradesEvents.addWanderingTrades(event);
+    }
+
     private static void registerDatapackListener(RegisterReloadListenerEvent event) {
         event.register(Identifier.fromNamespaceAndPath(MODID, "integrated_structure_spawners"), MobSpawnerManager.MOB_SPAWNER_MANAGER);
+        event.register(Identifier.fromNamespaceAndPath(MODID, "integrated_structure_map_trades"), StructureMapManager.STRUCTURE_MAP_MANAGER);
         event.register(Identifier.fromNamespaceAndPath(MODID, "integrated_pieces_spawn_counts"), StructurePieceCountsManager.STRUCTURE_PIECE_COUNTS_MANAGER);
         event.register(Identifier.fromNamespaceAndPath(MODID, "integrated_workstations"), WorkstationManager.WORKSTATION_MANAGER);
     }

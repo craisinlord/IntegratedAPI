@@ -54,7 +54,7 @@ public class StrongholdPlacement extends RandomSpreadStructurePlacement {
         long seed = chunkGeneratorStructureState.getLevelSeed();
         ChunkPos chunkPos = this.getPotentialStructureChunk(seed, chunkX, chunkZ);
         if (chunkPos.x == chunkX && chunkPos.z == chunkZ) {
-            int chunkDistance = (int) Math.sqrt((chunkX * chunkX) + (chunkZ * chunkZ));
+            int chunkDistance = (int) Math.sqrt(((long) chunkX * chunkX) + ((long) chunkZ * chunkZ));
 
             // Offset the distance so that the first ring is closer to spawn
             int shiftedChunkDistance = chunkDistance + (ringChunkThickness - chunkDistanceToFirstRing);
@@ -79,7 +79,7 @@ public class StrongholdPlacement extends RandomSpreadStructurePlacement {
 
     @Override
     public StructurePlacementType<?> type() {
-        return (StructurePlacementType<?>) IAStructurePlacementType.STRONGHOLD_PLACEMENT;
+        return IAStructurePlacementType.STRONGHOLD_PLACEMENT.get();
     }
 
     public int chunkDistanceToFirstRing() {

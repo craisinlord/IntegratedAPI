@@ -5,6 +5,7 @@ import com.craisinlord.integrated_api.events.lifecycle.RegisterReloadListenerEve
 import com.craisinlord.integrated_api.events.lifecycle.ServerGoingToStartEvent;
 import com.craisinlord.integrated_api.events.lifecycle.ServerGoingToStopEvent;
 import com.craisinlord.integrated_api.events.lifecycle.SetupEvent;
+import com.craisinlord.integrated_api.modinit.neoforge.IABiomeModifiers;
 import com.craisinlord.integrated_api.modinit.registry.ResourcefulRegistries;
 import com.craisinlord.integrated_api.modinit.registry.neoforge.ResourcefulRegistriesImpl;
 import com.craisinlord.integrated_api.utils.PlatformHooks;
@@ -30,6 +31,7 @@ public final class IntegratedAPINeoforge {
                 ResourcefulRegistriesImpl::createCustomRegistryInternal
         );
         IntegratedAPI.init();
+        IABiomeModifiers.BIOME_MODIFIER_SERIALIZERS.register(modEventBus);
         modEventBus.addListener((net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent event) ->
                 SetupEvent.EVENT.invoke(new SetupEvent(event::enqueueWork)));
         net.neoforged.bus.api.IEventBus eventBus = net.neoforged.neoforge.common.NeoForge.EVENT_BUS;

@@ -1,0 +1,34 @@
+package com.craisinlord.integrated_api.modinit;
+
+import com.craisinlord.integrated_api.IntegratedAPI;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.structure.Structure;
+
+public final class IATags {
+    public static final TagKey<Structure> LARGER_LOCATE_SEARCH = TagKey.create(
+            Registries.STRUCTURE,
+            Identifier.fromNamespaceAndPath(IntegratedAPI.MODID, "larger_locate_search")
+    );
+    public static final TagKey<Structure> UNSKIPPABLE_STRUCTURES = TagKey.create(
+            Registries.STRUCTURE,
+            Identifier.fromNamespaceAndPath(IntegratedAPI.MODID, "unskippable_structures")
+    );
+    public static final TagKey<Structure> DISABLED_STRUCTURES = TagKey.create(
+            Registries.STRUCTURE,
+            Identifier.fromNamespaceAndPath(IntegratedAPI.MODID, "disabled_structures")
+    );
+    public static final TagKey<MapCodec<? extends Feature>> SKIPPABLE_FEATURES = TagKey.create(
+            Registries.FEATURE_TYPE,
+            Identifier.fromNamespaceAndPath(IntegratedAPI.MODID, "skippable_features")
+    );
+
+    private IATags() {
+    }
+
+    public static void initTags() {
+    }
+}

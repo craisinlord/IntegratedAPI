@@ -11,6 +11,10 @@ public final class EventHandler<T> {
         listeners.add(listener);
     }
 
+    public void removeListener(Consumer<T> listener) {
+        listeners.remove(listener);
+    }
+
     public void invoke(T event) {
         for (Consumer<T> listener : listeners) {
             listener.accept(event);

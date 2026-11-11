@@ -5,7 +5,7 @@ import com.craisinlord.integrated_api.modinit.IAStructures;
 import com.craisinlord.integrated_api.utils.PlatformHooks;
 import com.craisinlord.integrated_api.world.structures.pieces.manager.PieceLimitedJigsawManager;
 import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptation;
-import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptationType;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
@@ -36,7 +36,7 @@ public class ModAdaptiveStructure extends JigsawStructure {
             Codec.intRange(1, 100).optionalFieldOf("valid_biome_radius_check").forGetter(structure -> structure.biomeRadius),
             Codec.intRange(1, IntegratedAPI.NEW_STRUCTURE_SIZE).optionalFieldOf("max_distance_from_center").forGetter(structure -> structure.maxDistanceFromCenter),
             Codec.BOOL.fieldOf("rotation_fixed").orElse(false).forGetter(structure -> structure.rotationFixed),
-            EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE).forGetter(structure -> structure.enhancedTerrainAdaptation),
+            JigsawStructure.TERRAIN_ADAPTATION_CODEC.forGetter(structure -> Pair.of(structure.enhancedTerrainAdaptation, structure.overridePieceTerrainAdaptation)),
             Codec.STRING.fieldOf("change_pool_mods").forGetter(structure -> structure.changePoolMod),
             StructureTemplatePool.CODEC.fieldOf("new_pool").forGetter(structure -> structure.newPool)
     ).apply(instance, ModAdaptiveStructure::new));
@@ -58,6 +58,7 @@ public class ModAdaptiveStructure extends JigsawStructure {
                                 Optional<Integer> maxDistanceFromCenter,
                                 boolean rotationFixed,
                                 EnhancedTerrainAdaptation enhancedTerrainAdaptation,
+                                boolean overridePieceTerrainAdaptation,
                                 String changePoolMod,
                                 Holder<StructureTemplatePool> newPool) {
         super(config,
@@ -75,9 +76,45 @@ public class ModAdaptiveStructure extends JigsawStructure {
                 maxDistanceFromCenter,
                 Optional.empty(),
                 rotationFixed,
-                enhancedTerrainAdaptation);
+                enhancedTerrainAdaptation,
+                overridePieceTerrainAdaptation);
         this.changePoolMod = changePoolMod;
         this.newPool = newPool;
+    }
+
+    private ModAdaptiveStructure(StructureSettings config,
+                                 Holder<StructureTemplatePool> startPool,
+                                 int size,
+                                 Optional<Integer> minYAllowed,
+                                 Optional<Integer> maxYAllowed,
+                                 HeightProvider startHeight,
+                                 Optional<Heightmap.Types> projectStartToHeightmap,
+                                 boolean cannotSpawnInLiquid,
+                                 Optional<Integer> terrainHeightCheckRadius,
+                                 Optional<Integer> allowedTerrainHeightRange,
+                                 Optional<Integer> biomeRadius,
+                                 Optional<Integer> maxDistanceFromCenter,
+                                 boolean rotationFixed,
+                                 Pair<EnhancedTerrainAdaptation, Boolean> terrainAdaptation,
+                                 String changePoolMod,
+                                 Holder<StructureTemplatePool> newPool) {
+        this(config,
+                startPool,
+                size,
+                minYAllowed,
+                maxYAllowed,
+                startHeight,
+                projectStartToHeightmap,
+                cannotSpawnInLiquid,
+                terrainHeightCheckRadius,
+                allowedTerrainHeightRange,
+                biomeRadius,
+                maxDistanceFromCenter,
+                rotationFixed,
+                terrainAdaptation.getFirst(),
+                terrainAdaptation.getSecond(),
+                changePoolMod,
+                newPool);
     }
 
     private ArrayList<String> convertModList(String modlist) {

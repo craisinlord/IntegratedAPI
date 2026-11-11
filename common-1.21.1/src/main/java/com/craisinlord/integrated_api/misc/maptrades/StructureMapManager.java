@@ -11,6 +11,8 @@ import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,19 +29,35 @@ public class StructureMapManager extends SimpleJsonResourceReloadListener {
 
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> loader, ResourceManager manager, ProfilerFiller profiler) {
-        ImmutableMap.Builder<String, List<VillagerMapObj>> builderVillager = ImmutableMap.builder();
-        ImmutableMap.Builder<WanderingTraderMapObj.TRADE_TYPE, List<WanderingTraderMapObj>> builderWandering = ImmutableMap.builder();
+        Map<String, List<VillagerMapObj>> villagerTrades = new LinkedHashMap<>();
+        Map<WanderingTraderMapObj.TRADE_TYPE, List<WanderingTraderMapObj>> wanderingTrades = new LinkedHashMap<>();
         loader.forEach((fileIdentifier, jsonElement) -> {
             try {
                 StructureMapCollectionObj spawnerMobEntries = GSON.fromJson(jsonElement, StructureMapCollectionObj.class);
-                builderVillager.putAll(spawnerMobEntries.villagerMaps);
-                builderWandering.putAll(spawnerMobEntries.wanderingTraderMap);
+                if (spawnerMobEntries.villagerMaps != null) {
+                    spawnerMobEntries.villagerMaps.forEach((profession, trades) -> {
+                        if (profession != null && trades != null) {
+                            villagerTrades.computeIfAbsent(profession, key -> new ArrayList<>()).addAll(trades);
+                        }
+                    });
+                }
+                if (spawnerMobEntries.wanderingTraderMap != null) {
+                    spawnerMobEntries.wanderingTraderMap.forEach((tradeType, trades) -> {
+                        if (tradeType != null && trades != null) {
+                            wanderingTrades.computeIfAbsent(tradeType, key -> new ArrayList<>()).addAll(trades);
+                        }
+                    });
+                }
             }
             catch (Exception e) {
                 IntegratedAPI.LOGGER.error("Integrated API Error: Couldn't parse structure map file {}", fileIdentifier, e);
             }
         });
-        VILLAGER_MAP_TRADES =  builderVillager.build();
-        WANDERING_TRADER_MAP_TRADES =  builderWandering.build();
+        ImmutableMap.Builder<String, List<VillagerMapObj>> builderVillager = ImmutableMap.builder();
+        villagerTrades.forEach((profession, trades) -> builderVillager.put(profession, List.copyOf(trades)));
+        ImmutableMap.Builder<WanderingTraderMapObj.TRADE_TYPE, List<WanderingTraderMapObj>> builderWandering = ImmutableMap.builder();
+        wanderingTrades.forEach((tradeType, trades) -> builderWandering.put(tradeType, List.copyOf(trades)));
+        VILLAGER_MAP_TRADES = builderVillager.build();
+        WANDERING_TRADER_MAP_TRADES = builderWandering.build();
     }
 }

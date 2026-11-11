@@ -2,6 +2,7 @@ package com.craisinlord.integrated_api.misc.structurepiececounter;
 
 import com.craisinlord.integrated_api.IntegratedAPI;
 import com.craisinlord.integrated_api.misc.reload.GsonJsonReloadListener;
+import com.craisinlord.integrated_api.modinit.IAConditionsRegistry;
 import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 import net.minecraft.resources.Identifier;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public final class StructurePieceCountsManager extends GsonJsonReloadListener {
     public static final StructurePieceCountsManager STRUCTURE_PIECE_COUNTS_MANAGER = new StructurePieceCountsManager();
@@ -33,6 +35,17 @@ public final class StructurePieceCountsManager extends GsonJsonReloadListener {
             StructurePieceCountsObj entry = piecesSpawnCounts.get(i);
             if (entry.alwaysSpawnThisMany != null && entry.neverSpawnMoreThanThisMany != null && entry.alwaysSpawnThisMany > entry.neverSpawnMoreThanThisMany) {
                 throw new IllegalStateException("Invalid piece count entry in " + fileIdentifier);
+            }
+            if (entry.condition != null) {
+                Supplier<Boolean> supplier = IAConditionsRegistry.IA_JSON_CONDITIONS_REGISTRY.lookup().get(Identifier.tryParse(entry.condition));
+                if (supplier != null) {
+                    if (!supplier.get()) {
+                        piecesSpawnCounts.remove(entry);
+                    }
+                }
+                else {
+                    IntegratedAPI.LOGGER.error("Repurposed Structures Error: Found {} entry has a condition that does not exist. Extra info: {}", entry.nbtPieceName, fileIdentifier);
+                }
             }
         }
         return piecesSpawnCounts;
@@ -91,5 +104,12 @@ public final class StructurePieceCountsManager extends GsonJsonReloadListener {
     }
 
     public record RequiredPieceNeeds(int maxLimit, int minDistanceFromCenter) {
+        public int getRequiredAmount() {
+            return maxLimit;
+        }
+
+        public int getMinDistanceFromCenter() {
+            return minDistanceFromCenter;
+        }
     }
 }

@@ -24,7 +24,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(value = LocateCommand.class, priority = 1200)
 public class LocateCommandMixin {
@@ -44,9 +43,7 @@ public class LocateCommandMixin {
     @Inject(
             method = "locateStructure(Lnet/minecraft/commands/CommandSourceStack;Lnet/minecraft/commands/arguments/ResourceOrTagKeyArgument$Result;)I",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/chunk/ChunkGenerator;findNearestMapStructure(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/HolderSet;Lnet/minecraft/core/BlockPos;IZ)Lcom/mojang/datafixers/util/Pair;", ordinal = 0),
-            locals = LocalCapture.CAPTURE_FAILSOFT,
-            cancellable = true,
-            require = 0
+            cancellable = true
     )
     private static void integratedapi_increaseLocateRadius(CommandSourceStack commandSourceStack,
                                                                   ResourceOrTagKeyArgument.Result<Structure> result,

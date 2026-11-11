@@ -130,7 +130,7 @@ public class SpawnerRandomizingProcessor implements StructureProcessor {
                 validSkyLightLevel.ifPresent(skyLightLimit -> {
                     CompoundTag skyLightTag = new CompoundTag();
                     skyLightTag.putInt("min_inclusive", skyLightLimit.minInclusive());
-                    skyLightTag.putInt("max_exclusive", skyLightLimit.maxInclusive());
+                    skyLightTag.putInt("max_inclusive", skyLightLimit.maxInclusive());
                     customSpawnRule.put("sky_light_limit", skyLightTag);
                 });
 

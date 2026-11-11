@@ -41,6 +41,7 @@ public class CeilingStructure extends JigsawStructure {
             Codec.intRange(1, IntegratedAPI.NEW_STRUCTURE_SIZE).optionalFieldOf("max_distance_from_center").forGetter(structure -> structure.maxDistanceFromCenter),
             Codec.BOOL.fieldOf("rotation_fixed").orElse(false).forGetter(structure -> structure.rotationFixed),
             EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE).forGetter(structure -> structure.enhancedTerrainAdaptation),
+            Codec.BOOL.optionalFieldOf("override_piece_terrain_adaptation", false).forGetter(structure -> structure.overridePieceTerrainAdaptation),
             Codec.intRange(1, 512).fieldOf("max_roof_search_distance").forGetter(structure -> structure.maxRoofSearchDistance),
             Codec.intRange(1, 64).fieldOf("min_roof_thickness").forGetter(structure -> structure.minRoofThickness),
             Codec.intRange(1, 512).fieldOf("min_open_space_below").forGetter(structure -> structure.minOpenSpaceBelow),
@@ -63,6 +64,7 @@ public class CeilingStructure extends JigsawStructure {
                             Optional<Integer> maxDistanceFromCenter,
                             boolean rotationFixed,
                             EnhancedTerrainAdaptation enhancedTerrainAdaptation,
+                            boolean overridePieceTerrainAdaptation,
                             int maxRoofSearchDistance,
                             int minRoofThickness,
                             int minOpenSpaceBelow,
@@ -83,7 +85,8 @@ public class CeilingStructure extends JigsawStructure {
                 maxDistanceFromCenter,
                 Optional.empty(),
                 rotationFixed,
-                enhancedTerrainAdaptation
+                enhancedTerrainAdaptation,
+                overridePieceTerrainAdaptation
         );
         this.maxRoofSearchDistance = maxRoofSearchDistance;
         this.minRoofThickness = minRoofThickness;

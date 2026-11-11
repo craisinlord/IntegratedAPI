@@ -5,6 +5,7 @@ import com.craisinlord.integrated_api.modinit.registry.RegistryEntry;
 import com.craisinlord.integrated_api.modinit.registry.ResourcefulRegistries;
 import com.craisinlord.integrated_api.modinit.registry.ResourcefulRegistry;
 import com.craisinlord.integrated_api.world.structures.BiomeFacingStructure;
+import com.craisinlord.integrated_api.world.structures.CeilingStructure;
 import com.craisinlord.integrated_api.world.structures.JigsawStructure;
 import com.craisinlord.integrated_api.world.structures.ModAdaptiveStructure;
 import com.craisinlord.integrated_api.world.structures.NetherJigsawStructure;
@@ -29,6 +30,8 @@ public final class IAStructures {
             STRUCTURE_TYPE.register("over_lava_nether_structure", () -> () -> OverLavaNetherStructure.CODEC);
     public static final RegistryEntry<StructureType<BiomeFacingStructure>> BIOME_FACING_STRUCTURE =
             STRUCTURE_TYPE.register("biome_facing_structure", () -> () -> BiomeFacingStructure.CODEC);
+    public static final RegistryEntry<StructureType<CeilingStructure>> CEILING_STRUCTURE =
+            STRUCTURE_TYPE.register("ceiling_structure", () -> () -> CeilingStructure.CODEC);
 
     private IAStructures() {
     }

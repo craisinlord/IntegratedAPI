@@ -4,7 +4,7 @@ license="All rights reserved"
 
 [[mods]] #mandatory
     modId="integrated_api" #mandatory
-    logoFile="../assets/integrated_api/integrated_api_logo.png"
+    logoFile="assets/integrated_api/integrated_api_logo.png"
     logoBlur=false
     version="${version}" #mandatory
     displayName="Integrated API" #mandatory

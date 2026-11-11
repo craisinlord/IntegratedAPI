@@ -91,7 +91,7 @@ public class CappedStructureSurfaceProcessor implements StructureProcessor {
                             serverLevelAccessor,
                             nbtOriginPos,
                             chunkCenter,
-                            structureBlockInfoWorld.pos(),
+                            structureBlockInfoOriginalNbtOrigin.pos(),
                             structureBlockInfoWorld,
                             structurePlaceSettings);
 

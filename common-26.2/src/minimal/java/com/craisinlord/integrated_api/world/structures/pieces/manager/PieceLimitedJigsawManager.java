@@ -1,5 +1,6 @@
 package com.craisinlord.integrated_api.world.structures.pieces.manager;
 
+import com.craisinlord.integrated_api.world.structures.pieces.IASinglePoolElement;
 import com.google.common.collect.Queues;
 import com.mojang.datafixers.util.Pair;
 import com.craisinlord.integrated_api.IntegratedAPI;
@@ -229,11 +230,9 @@ public class PieceLimitedJigsawManager {
         for(Object piece : components) {
             if(piece instanceof PoolElementStructurePiece) {
                 StructurePoolElement poolElement = ((PoolElementStructurePiece)piece).getElement();
-                if(poolElement instanceof SinglePoolElement) {
-                    Identifier pieceID = ((SinglePoolElementAccessor) poolElement).integratedapi_getTemplate().left().orElse(null);
-                    if(counter.containsKey(pieceID)) {
-                        counter.put(pieceID, counter.get(pieceID) - 1);
-                    }
+                Identifier pieceID = getPieceId(poolElement);
+                if(pieceID != null && counter.containsKey(pieceID)) {
+                    counter.put(pieceID, counter.get(pieceID) - 1);
                 }
             }
         }
@@ -241,6 +240,16 @@ public class PieceLimitedJigsawManager {
         return counter.values().stream().anyMatch(count -> count > 0);
     }
 
+
+    private static Identifier getPieceId(StructurePoolElement element) {
+        if (element instanceof SinglePoolElement) {
+            return ((SinglePoolElementAccessor) element).integratedapi_getTemplate().left().orElse(null);
+        }
+        if (element instanceof IASinglePoolElement iaElement) {
+            return iaElement.template.left().orElse(null);
+        }
+        return null;
+    }
 
     public static final class Assembler {
         private final Registry<StructureTemplatePool> poolRegistry;
@@ -402,7 +411,7 @@ public class PieceLimitedJigsawManager {
                     for (int i = 0; i < candidatePieces.size(); i++) {
                         Pair<StructurePoolElement, Integer> candidatePiecePair = candidatePieces.get(i);
                         StructurePoolElement candidatePiece = candidatePiecePair.getFirst();
-                        if (candidatePiece instanceof SinglePoolElement && ((SinglePoolElementAccessor) candidatePiece).integratedapi_getTemplate().left().get().equals(pieceNeededToSpawn.get())) { // Condition 1
+                        if (pieceNeededToSpawn.get().equals(getPieceId(candidatePiece))) { // Condition 1
                             if (depth >= Math.min(maxDepth - 1, this.requiredPieces.get(pieceNeededToSpawn.get()).minDistanceFromCenter())) { // Condition 3
                                 // All conditions are met. Use required piece  as chosen piece.
                                 chosenPiecePair = candidatePiecePair;
@@ -439,9 +448,8 @@ public class PieceLimitedJigsawManager {
 
                 // Before performing any logic, check to ensure we haven't reached the max number of instances of this piece.
                 // This logic is my own additional logic - vanilla does not offer this behavior.
-                Identifier pieceName = null;
-                if(candidatePiece instanceof SinglePoolElement) {
-                    pieceName = ((SinglePoolElementAccessor) candidatePiece).integratedapi_getTemplate().left().get();
+                Identifier pieceName = getPieceId(candidatePiece);
+                if(pieceName != null) {
                     if (this.currentPieceCounts.containsKey(pieceName) && this.maximumPieceCounts.containsKey(pieceName)) {
                         if (this.currentPieceCounts.get(pieceName) >= this.maximumPieceCounts.get(pieceName)) {
                             // Remove this piece from the list of candidates and retry.

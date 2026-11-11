@@ -7,7 +7,9 @@ import com.craisinlord.integrated_api.world.structures.pieces.manager.PieceLimit
 import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptation;
 import com.craisinlord.integrated_api.world.terrainadaptation.EnhancedTerrainAdaptationType;
 import com.google.common.collect.Maps;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
@@ -34,6 +36,10 @@ import java.util.*;
 
 public class JigsawStructure extends Structure {
 
+    public static final MapCodec<Pair<EnhancedTerrainAdaptation, Boolean>> TERRAIN_ADAPTATION_CODEC = Codec.mapPair(
+            EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE),
+            Codec.BOOL.optionalFieldOf("override_piece_terrain_adaptation", false));
+
     public static final Codec<com.craisinlord.integrated_api.world.structures.JigsawStructure> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             com.craisinlord.integrated_api.world.structures.JigsawStructure.settingsCodec(instance),
             StructureTemplatePool.CODEC.fieldOf("start_pool").forGetter(structure -> structure.startPool),
@@ -50,7 +56,7 @@ public class JigsawStructure extends Structure {
             Codec.intRange(1, IntegratedAPI.NEW_STRUCTURE_SIZE).optionalFieldOf("max_distance_from_center").forGetter(structure -> structure.maxDistanceFromCenter),
             StringRepresentable.fromEnum(BURYING_TYPE::values).optionalFieldOf("burying_type").forGetter(structure -> structure.buryingType),
             Codec.BOOL.fieldOf("rotation_fixed").orElse(false).forGetter(structure -> structure.rotationFixed),
-            EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE).forGetter(structure -> structure.enhancedTerrainAdaptation)
+            JigsawStructure.TERRAIN_ADAPTATION_CODEC.forGetter(structure -> Pair.of(structure.enhancedTerrainAdaptation, structure.overridePieceTerrainAdaptation))
     ).apply(instance, JigsawStructure::new));
 
     public final Holder<StructureTemplatePool> startPool;
@@ -68,6 +74,7 @@ public class JigsawStructure extends Structure {
     public final Optional<BURYING_TYPE> buryingType;
     public final boolean rotationFixed;
     public final EnhancedTerrainAdaptation enhancedTerrainAdaptation;
+    public final boolean overridePieceTerrainAdaptation;
 
     public JigsawStructure(Structure.StructureSettings config,
                            Holder<StructureTemplatePool> startPool,
@@ -84,7 +91,8 @@ public class JigsawStructure extends Structure {
                            Optional<Integer> maxDistanceFromCenter,
                            Optional<BURYING_TYPE> buryingType,
                            boolean rotationFixed,
-                           EnhancedTerrainAdaptation enhancedTerrainAdaptation)
+                           EnhancedTerrainAdaptation enhancedTerrainAdaptation,
+                           boolean overridePieceTerrainAdaptation)
     {
         super(config);
         this.startPool = startPool;
@@ -102,6 +110,7 @@ public class JigsawStructure extends Structure {
         this.buryingType = buryingType;
         this.rotationFixed = rotationFixed;
         this.enhancedTerrainAdaptation = enhancedTerrainAdaptation;
+        this.overridePieceTerrainAdaptation = overridePieceTerrainAdaptation;
 
         if (maxYAllowed.isPresent() && minYAllowed.isPresent() && maxYAllowed.get() < minYAllowed.get()) {
             throw new RuntimeException("""
@@ -113,6 +122,41 @@ public class JigsawStructure extends Structure {
         if (maxDistanceFromCenter.isPresent() && (maxDistanceFromCenter.get() + enhancedTerrainAdaptation.getKernelRadius() > IntegratedAPI.NEW_STRUCTURE_SIZE)) {
             throw new RuntimeException("Integrated API: Structure size including enhanced terrain adaptation must not exceed " + IntegratedAPI.NEW_STRUCTURE_SIZE);
         }
+    }
+
+    private JigsawStructure(Structure.StructureSettings config,
+                            Holder<StructureTemplatePool> startPool,
+                            int size,
+                            Optional<Integer> minYAllowed,
+                            Optional<Integer> maxYAllowed,
+                            Optional<Integer> allowedYRangeFromStart,
+                            HeightProvider startHeight,
+                            Optional<Heightmap.Types> projectStartToHeightmap,
+                            boolean cannotSpawnInLiquid,
+                            Optional<Integer> terrainHeightCheckRadius,
+                            Optional<Integer> allowedTerrainHeightRange,
+                            Optional<Integer> biomeRadius,
+                            Optional<Integer> maxDistanceFromCenter,
+                            Optional<BURYING_TYPE> buryingType,
+                            boolean rotationFixed,
+                            Pair<EnhancedTerrainAdaptation, Boolean> terrainAdaptation) {
+        this(config,
+                startPool,
+                size,
+                minYAllowed,
+                maxYAllowed,
+                allowedYRangeFromStart,
+                startHeight,
+                projectStartToHeightmap,
+                cannotSpawnInLiquid,
+                terrainHeightCheckRadius,
+                allowedTerrainHeightRange,
+                biomeRadius,
+                maxDistanceFromCenter,
+                buryingType,
+                rotationFixed,
+                terrainAdaptation.getFirst(),
+                terrainAdaptation.getSecond());
     }
 
     protected boolean extraSpawningChecks(GenerationContext context, BlockPos blockPos) {

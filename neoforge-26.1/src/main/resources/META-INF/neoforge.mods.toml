@@ -4,7 +4,7 @@ license="All rights reserved"
 
 [[mods]] #mandatory
     modId="integrated_api" #mandatory
-    logoFile="../assets/integrated_api/integrated_api_logo.png"
+    logoFile="assets/integrated_api/integrated_api_logo.png"
     logoBlur=false
     version="${version}" #mandatory
     displayName="Integrated API" #mandatory
@@ -24,4 +24,4 @@ license="All rights reserved"
 [[dependencies.integrated_api]]
     modId="minecraft"
     type="required"
-    versionRange="[26.1,)"
+    versionRange="[26.1,26.2)"

@@ -45,6 +45,7 @@ public class BiomeFacingStructure extends JigsawStructure {
             Codec.intRange(1, 100).optionalFieldOf("valid_biome_radius_check").forGetter(structure -> structure.biomeRadius),
             Codec.intRange(1, IntegratedAPI.NEW_STRUCTURE_SIZE).optionalFieldOf("max_distance_from_center").forGetter(structure -> structure.maxDistanceFromCenter),
             EnhancedTerrainAdaptationType.ADAPTATION_CODEC.optionalFieldOf("enhanced_terrain_adaptation", EnhancedTerrainAdaptation.NONE).forGetter(structure -> structure.enhancedTerrainAdaptation),
+            Codec.BOOL.optionalFieldOf("override_piece_terrain_adaptation", false).forGetter(structure -> structure.overridePieceTerrainAdaptation),
             LiquidSettings.CODEC.optionalFieldOf("liquid_settings", net.minecraft.world.level.levelgen.structure.structures.JigsawStructure.DEFAULT_LIQUID_SETTINGS).forGetter(structure -> structure.liquidSettings),
             Codec.intRange(1, 100).fieldOf("target_biome_radius_check_blocks").orElse(24).forGetter(structure -> structure.targetBiomeRadius),
             RegistryCodecs.homogeneousList(Registries.BIOME).fieldOf("target_biomes").forGetter(structure -> structure.targetBiomes)
@@ -65,6 +66,7 @@ public class BiomeFacingStructure extends JigsawStructure {
                                 Optional<Integer> biomeRadius,
                                 Optional<Integer> maxDistanceFromCenter,
                                 EnhancedTerrainAdaptation enhancedTerrainAdaptation,
+                                boolean overridePieceTerrainAdaptation,
                                 LiquidSettings liquidSettings,
                                 int targetBiomeRadius,
                                 HolderSet<Biome> targetBiomes)
@@ -83,6 +85,7 @@ public class BiomeFacingStructure extends JigsawStructure {
                 Optional.empty(),
                 false,
                 enhancedTerrainAdaptation,
+                overridePieceTerrainAdaptation,
                 liquidSettings);
         this.targetBiomeRadius = targetBiomeRadius;
         this.targetBiomes = targetBiomes;
@@ -230,7 +233,6 @@ public class BiomeFacingStructure extends JigsawStructure {
                 return "CLOCKWISE_180";
             }
         }
-        IntegratedAPI.LOGGER.info("EVIL DETECTED YOU WILL BE EXTERMINATED");
         return "NONE";
     }
 
