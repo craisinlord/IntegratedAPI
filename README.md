@@ -42,6 +42,10 @@ Path root: `data/integrated_api/tags/worldgen/`
   - `/locate structure` uses a larger search radius for these structures.
   - Geodes are prevented from generating inside these structure starts.
 
+- `structure/tree_free_structures.json`
+  - Trees do not generate inside or within 4 blocks of any piece of these structures.
+  - Saplings grown by players are not affected.
+
 #### Feature tags
 
 - `feature/skippable_features.json`
@@ -292,6 +296,22 @@ Example shape:
 - `integrated_api:clockwork_bearing_processor`: For Create clockwork bearings, sets `QueueAssembly` and schedules a tick. Use when your structure contains Create clockwork bearings.
 - `integrated_api:elevator_pulley_processor`: For Create elevator pulleys, sets `QueueAssembly` and schedules a tick. Use when your structure contains Create elevator pulleys.
 - `integrated_api:tick_blocks_processor`: Schedules immediate ticks for blocks in `blocks_to_tick`. Use to kickstart blocks that require first-tick activation (redstone/bubble-column style behavior).
+- `integrated_api:pillar_processor`: Extends the bottom blocks of a piece straight down to solid ground, like woodland mansion supports. Works through air, fluids, plants and anything in the `integrated_api:pillar_replaceable` block tag. Use for docks, stilt houses and anything built over water. A block starts a pillar when it matches `input_predicate`, sits between `min_local_y` and `max_local_y` (height inside the nbt, both default `0`) and is the lowest block of the piece in its column. `pillar_blocks` is an optional weighted list of states (the foot block is copied when empty), `embed_depth` pushes the pillar into the ground, `max_length` caps it, and `require_ground` (default `true`) skips pillars that would hang over the void. Waterlogging is set automatically.
+
+```json
+{
+  "processor_type": "integrated_api:pillar_processor",
+  "input_predicate": {
+    "predicate_type": "minecraft:tag_match",
+    "tag": "example:pillar_feet"
+  },
+  "pillar_blocks": [
+    { "state": { "Name": "minecraft:mangrove_log", "Properties": { "axis": "y" } }, "weight": 6 },
+    { "state": { "Name": "minecraft:mangrove_roots" }, "weight": 2 }
+  ],
+  "embed_depth": 1
+}
+```
 - `integrated_api:integrated_block_replace_processor`: If `required_mod` is loaded, replaces `input_block` (optionally matching `input_nbt`) with `output_block`/`output_blocks` at `probability`; can use `otherwise_block` when the mod is missing. Use for cross-mod compatibility swaps.
 - `integrated_api:workstation_processor`: Replaces `input_block` with a weighted output from `integrated_workstations` based on `workstation_type`, honoring `enable_integration`. Use for profession/workstation compatibility placeholders.
 

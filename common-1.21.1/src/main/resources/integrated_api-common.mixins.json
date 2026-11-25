@@ -10,6 +10,7 @@
     "entities.ShulkerEntityInvoker",
     "features.DungeonFeatureAccessor",
     "features.NoGeodesInStructuresMixin",
+    "features.NoTreesInStructuresMixin",
     "items.MapItemAccessor",
     "resources.LootContextAccessor",
     "resources.NamespaceResourceManagerAccessor",

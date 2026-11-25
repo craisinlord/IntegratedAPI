@@ -18,6 +18,7 @@ import com.craisinlord.integrated_api.world.processors.ReplaceAirOnlyProcessor;
 import com.craisinlord.integrated_api.world.processors.ReplaceLiquidOnlyProcessor;
 import com.craisinlord.integrated_api.world.processors.SpawnerRandomizingProcessor;
 import com.craisinlord.integrated_api.world.processors.TrialSpawnerProcessor;
+import com.craisinlord.integrated_api.world.processors.PillarProcessor;
 import com.craisinlord.integrated_api.world.processors.TickBlocksProcessor;
 import com.craisinlord.integrated_api.world.processors.WaterlogWhenReplacingWaterProcessor;
 import com.craisinlord.integrated_api.world.processors.WaterloggingFixProcessor;
@@ -65,6 +66,8 @@ public final class IAProcessors {
             STRUCTURE_PROCESSOR.register("waterlogging_fix_processor", () -> WaterloggingFixProcessor.CODEC);
     public static final RegistryEntry<MapCodec<? extends StructureProcessor>> WATERLOGGING_WHEN_REPLACING_WATER_PROCESSOR =
             STRUCTURE_PROCESSOR.register("waterlogging_when_replacing_water_processor", () -> WaterlogWhenReplacingWaterProcessor.CODEC);
+    public static final RegistryEntry<MapCodec<? extends StructureProcessor>> PILLAR_PROCESSOR =
+            STRUCTURE_PROCESSOR.register("pillar_processor", () -> PillarProcessor.CODEC);
     public static final RegistryEntry<MapCodec<? extends StructureProcessor>> TICK_BLOCKS_PROCESSOR =
             STRUCTURE_PROCESSOR.register("tick_blocks_processor", () -> TickBlocksProcessor.CODEC);
     public static final RegistryEntry<MapCodec<? extends StructureProcessor>> SPAWNER_RANDOMIZING_PROCESSOR =

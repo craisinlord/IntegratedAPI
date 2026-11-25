@@ -4,11 +4,22 @@ import com.craisinlord.integrated_api.IntegratedAPI;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
 public final class IATags {
     public static void initTags() {}
+
+    public static final TagKey<Structure> TREE_FREE_STRUCTURES = TagKey.create(
+            Registries.STRUCTURE,
+            ResourceLocation.fromNamespaceAndPath(IntegratedAPI.MODID, "tree_free_structures")
+    );
+
+    public static final TagKey<Block> PILLAR_REPLACEABLE = TagKey.create(
+            Registries.BLOCK,
+            ResourceLocation.fromNamespaceAndPath(IntegratedAPI.MODID, "pillar_replaceable")
+    );
 
     public static TagKey<Structure> LARGER_LOCATE_SEARCH = TagKey.create(Registries.STRUCTURE,
             ResourceLocation.fromNamespaceAndPath(IntegratedAPI.MODID, "larger_locate_search"));

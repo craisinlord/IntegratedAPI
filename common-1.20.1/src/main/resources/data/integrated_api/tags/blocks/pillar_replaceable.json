@@ -1,0 +1,20 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:leaves",
+    "#minecraft:replaceable",
+    "#minecraft:flowers",
+    "#minecraft:saplings",
+    "minecraft:lily_pad",
+    "minecraft:kelp",
+    "minecraft:kelp_plant",
+    "minecraft:seagrass",
+    "minecraft:tall_seagrass",
+    "minecraft:sugar_cane",
+    "minecraft:bamboo",
+    "minecraft:mangrove_roots",
+    "minecraft:mangrove_propagule",
+    "minecraft:moss_carpet",
+    "minecraft:snow"
+  ]
+}

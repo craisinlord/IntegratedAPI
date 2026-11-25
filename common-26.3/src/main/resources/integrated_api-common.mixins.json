@@ -10,6 +10,7 @@
     "entities.MerchantOfferAccessor",
     "features.DungeonFeatureAccessor",
     "features.NoGeodesInStructuresMixin",
+    "features.NoTreesInStructuresMixin",
     "structures.BeardifierMixin",
     "structures.DisableStructuresMixin",
     "structures.JigsawJunctionAccessor",

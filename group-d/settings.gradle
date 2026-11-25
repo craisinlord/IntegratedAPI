@@ -1,0 +1,21 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven { url = 'https://maven.neoforged.net/releases' }
+        maven { url = 'https://maven.fabricmc.net/' }
+        maven { url = 'https://maven.parchmentmc.org' }
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'Integrated-API-GroupD'
+
+include 'common-26.3'
+project(':common-26.3').projectDir = file('../common-26.3')
+include 'fabric-26.3'
+project(':fabric-26.3').projectDir = file('../fabric-26.3')
+include 'neoforge-26.3'
+project(':neoforge-26.3').projectDir = file('../neoforge-26.3')

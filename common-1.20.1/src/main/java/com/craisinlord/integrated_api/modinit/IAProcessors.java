@@ -31,6 +31,7 @@ public final class IAProcessors {
     public static final RegistryEntry<StructureProcessorType<MechanicalBearingProcessor>> MECHANICAL_BEARING_PROCESSOR = STRUCTURE_PROCESSOR.register("mechanical_bearing_processor", () -> () -> MechanicalBearingProcessor.CODEC);
     public static final RegistryEntry<StructureProcessorType<ClockworkBearingProcessor>> CLOCKWORK_BEARING_PROCESSOR = STRUCTURE_PROCESSOR.register("clockwork_bearing_processor", () -> () -> ClockworkBearingProcessor.CODEC);
     public static final RegistryEntry<StructureProcessorType<ElevatorPulleyProcessor>> ELEVATOR_PULLEY_PROCESSOR = STRUCTURE_PROCESSOR.register("elevator_pulley_processor", () -> () -> ElevatorPulleyProcessor.CODEC);
+    public static final RegistryEntry<StructureProcessorType<PillarProcessor>> PILLAR_PROCESSOR = STRUCTURE_PROCESSOR.register("pillar_processor", () -> () -> PillarProcessor.CODEC);
     public static final RegistryEntry<StructureProcessorType<TickBlocksProcessor>> TICK_BLOCKS_PROCESSOR = STRUCTURE_PROCESSOR.register("tick_blocks_processor", () -> () -> TickBlocksProcessor.CODEC);
 
     public static final RegistryEntry<StructureProcessorType<IntegratedBlockReplaceProcessor>> INTEGRATED_BLOCK_REPLACE_PROCESSOR = STRUCTURE_PROCESSOR.register("integrated_block_replace_processor", () -> () -> IntegratedBlockReplaceProcessor.CODEC);
